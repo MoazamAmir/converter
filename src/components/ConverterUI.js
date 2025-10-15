@@ -812,7 +812,24 @@ export default function ConverterUI(props) {
           </div>
         </div>
       )}
-
+<div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-12 text-center text-white relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-full opacity-10">
+            <div className="absolute top-10 left-10 w-20 h-20 bg-white rounded-full"></div>
+            <div className="absolute bottom-10 right-10 w-32 h-32 bg-white rounded-full"></div>
+            <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-white rounded-full"></div>
+          </div>
+          <div className="relative z-10">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Want to convert large files without a queue or Ads?
+            </h2>
+            <p className="text-xl mb-8 text-indigo-100">Upgrade Now</p>
+            <button className="px-8 py-4 bg-yellow-400 text-gray-900 rounded-xl font-bold text-lg hover:bg-yellow-300 transition-all transform hover:scale-105 shadow-xl">
+              Sign Up
+            </button>
+          </div>
+        </div>
+      </div>
       {/* Floating Chat */}
       <div className="fixed bottom-6 left-6 z-60">
         {showChat && (
