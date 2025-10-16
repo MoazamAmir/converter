@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-
+import { jsPDF } from 'jspdf';
 // Helper to format file size
 const formatFileSize = (bytes) => {
   if (bytes === 0) return '0 Bytes';
@@ -187,75 +187,202 @@ export default function useConverter() {
 
         // Determine MIME type
         // Determine MIME type and handle special formats
-        let mimeType;
-        let useDataURL = false;
-        const format = conversionFormat.toLowerCase();
-        
-        // Special handling for vector/complex formats
-        if (format === 'svg') {
-          // Convert to SVG format
-          const svgData = `<?xml version="1.0" encoding="UTF-8"?>
+        // Determine MIME type and handle special formats
+
+
+let mimeType;
+const format = conversionFormat.toLowerCase();
+
+// ==================== SVG FORMAT ====================
+if (format === 'svg') {
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    progress += 10;
+    setDownloadProgress(progress);
+    if (progress >= 100) clearInterval(progressInterval);
+  }, 100);
+
+  const svgData = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
      width="${targetWidth}" height="${targetHeight}" viewBox="0 0 ${targetWidth} ${targetHeight}">
   <image width="${targetWidth}" height="${targetHeight}" 
          xlink:href="${canvas.toDataURL('image/png')}"/>
 </svg>`;
-          
-          const blob = new Blob([svgData], { type: 'image/svg+xml' });
-          const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.svg');
-          const newUrl = URL.createObjectURL(blob);
-          
-          if (convertedFile && convertedFile.url) {
-            try { URL.revokeObjectURL(convertedFile.url); } catch {}
-          }
-          
-          setConvertedFile({
-            name: newFileName,
-            url: newUrl,
-            blob: blob
-          });
-          
-          setTimeout(() => {
-            setIsConverting(false);
-            setShowResults(true);
-          }, 1200);
-          return;
-        }
-        
-        switch (format) {
-          case 'jpg':
-          case 'jpeg':
-            mimeType = 'image/jpeg';
-            break;
-          case 'png':
-            mimeType = 'image/png';
-            break;
-          case 'webp':
-            mimeType = 'image/webp';
-            break;
-          case 'bmp':
-            mimeType = 'image/bmp';
-            break;
-          case 'gif':
-            mimeType = 'image/gif';
-            break;
-          case 'ico':
-            mimeType = 'image/x-icon';
-            break;
-          case 'tiff':
-          case 'tga':
-          case 'eps':
-          case 'psd':
-          case 'odd':
-            // For unsupported formats, use PNG as base
-            mimeType = 'image/png';
-            break;
-          case 'pdf':
-            mimeType = 'image/png';
-            break;
-          default:
-            mimeType = 'image/png';
-        }
+
+  const blob = new Blob([svgData], { type: 'image/svg+xml' });
+  const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.svg');
+  const newUrl = URL.createObjectURL(blob);
+
+  if (convertedFile && convertedFile.url) {
+    try { URL.revokeObjectURL(convertedFile.url); } catch {}
+  }
+
+  setConvertedFile({ name: newFileName, url: newUrl, blob });
+  setTimeout(() => {
+    setIsConverting(false);
+    setShowResults(true);
+  }, 1200);
+  return;
+}
+
+// ==================== PDF FORMAT ====================
+if (format === 'pdf') {
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    progress += 10;
+    setDownloadProgress(progress);
+    if (progress >= 100) clearInterval(progressInterval);
+  }, 100);
+
+  const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+  // ✅ Using jsPDF for proper rendering
+  const pdf = new jsPDF({
+    orientation: targetWidth > targetHeight ? 'l' : 'p',
+    unit: 'px',
+    format: [targetWidth, targetHeight],
+  });
+  pdf.addImage(imgData, 'JPEG', 0, 0, targetWidth, targetHeight);
+  const blob = pdf.output('blob');
+  const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.pdf');
+  const newUrl = URL.createObjectURL(blob);
+
+  if (convertedFile && convertedFile.url) {
+    try { URL.revokeObjectURL(convertedFile.url); } catch {}
+  }
+
+  setConvertedFile({ name: newFileName, url: newUrl, blob });
+  setTimeout(() => {
+    setIsConverting(false);
+    setShowResults(true);
+  }, 1200);
+  return;
+}
+
+// ==================== DOC / TXT FORMAT ====================
+if (format === 'doc' || format === 'txt') {
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    progress += 10;
+    setDownloadProgress(progress);
+    if (progress >= 100) clearInterval(progressInterval);
+  }, 100);
+
+  const imgData = canvas.toDataURL('image/png');
+  let content, mimeTypeDoc;
+
+  if (format === 'txt') {
+    content = `Image File: ${selectedFile.name}\nConverted to TXT format\nImage Data URL:\n${imgData}`;
+    mimeTypeDoc = 'text/plain';
+  } else {
+    content = `{\\rtf1\\ansi\\deff0\n{\\pict\\pngblip\\picw${targetWidth}\\pich${targetHeight}\n${imgData}\n}\n}`;
+    mimeTypeDoc = 'application/msword';
+  }
+
+  const blob = new Blob([content], { type: mimeTypeDoc });
+  const newFileName = selectedFile.name.replace(/\.[^/.]+$/, `.${format}`);
+  const newUrl = URL.createObjectURL(blob);
+
+  if (convertedFile && convertedFile.url) {
+    try { URL.revokeObjectURL(convertedFile.url); } catch {}
+  }
+
+  setConvertedFile({ name: newFileName, url: newUrl, blob });
+  setTimeout(() => {
+    setIsConverting(false);
+    setShowResults(true);
+  }, 1200);
+  return;
+}
+
+// ==================== CSV / XLS FORMAT ====================
+if (format === 'csv' || format === 'xls') {
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    progress += 10;
+    setDownloadProgress(progress);
+    if (progress >= 100) clearInterval(progressInterval);
+  }, 100);
+
+  let content, mimeTypeSheet;
+  if (format === 'csv') {
+    content = `File Name,Width,Height,Format\n${selectedFile.name},${targetWidth},${targetHeight},${selectedFile.type}`;
+    mimeTypeSheet = 'text/csv';
+  } else {
+    content = `File Name\tWidth\tHeight\tFormat\n${selectedFile.name}\t${targetWidth}\t${targetHeight}\t${selectedFile.type}`;
+    mimeTypeSheet = 'application/vnd.ms-excel';
+  }
+
+  const blob = new Blob([content], { type: mimeTypeSheet });
+  const newFileName = selectedFile.name.replace(/\.[^/.]+$/, `.${format}`);
+  const newUrl = URL.createObjectURL(blob);
+
+  if (convertedFile && convertedFile.url) {
+    try { URL.revokeObjectURL(convertedFile.url); } catch {}
+  }
+
+  setConvertedFile({ name: newFileName, url: newUrl, blob });
+  setTimeout(() => {
+    setIsConverting(false);
+    setShowResults(true);
+  }, 1200);
+  return;
+}
+
+// ==================== STANDARD IMAGE FORMATS ====================
+switch (format) {
+  case 'jpg':
+  case 'jpeg':
+    mimeType = 'image/jpeg';
+    break;
+  case 'png':
+    mimeType = 'image/png';
+    break;
+  case 'webp':
+    mimeType = 'image/webp';
+    break;
+  case 'bmp':
+    mimeType = 'image/bmp';
+    break;
+  case 'gif':
+    mimeType = 'image/gif';
+    break;
+  case 'ico':
+    mimeType = 'image/x-icon';
+    break;
+  case 'tiff':
+  case 'tga':
+  case 'eps':
+  case 'psd':
+  case 'odd':
+    mimeType = 'image/png'; // fallback
+    break;
+  default:
+    mimeType = 'image/png';
+}
+
+// let progress = 0;
+// const progressInterval = setInterval(() => {
+//   progress += 10;
+//   setDownloadProgress(progress);
+//   if (progress >= 100) clearInterval(progressInterval);
+// }, 100);
+
+// canvas.toBlob((blob) => {
+//   const newFileName = selectedFile.name.replace(/\.[^/.]+$/, `.${format}`);
+//   const newUrl = URL.createObjectURL(blob);
+
+//   if (convertedFile && convertedFile.url) {
+//     try { URL.revokeObjectURL(convertedFile.url); } catch {}
+//   }
+
+//   setConvertedFile({ name: newFileName, url: newUrl, blob });
+//   setTimeout(() => {
+//     setIsConverting(false);
+//     setShowResults(true);
+//   }, 1200);
+// }, mimeType, 1.0);
+
 
         // Determine quality
         let quality = 0.9;
