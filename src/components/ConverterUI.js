@@ -1,4 +1,5 @@
 import React from 'react';
+
 export default function ConverterUI(props) {
   const {
     files,
@@ -54,14 +55,15 @@ export default function ConverterUI(props) {
     sendChatMessage,
     handleChatKeyDown,
   } = props;
+
   const [headerHovered, setHeaderHovered] = React.useState(false);
+
   React.useEffect(() => {
     if (typeof setShowDropdown === 'function') {
       setShowDropdown(headerHovered);
     }
   }, [headerHovered, setShowDropdown]);
 
-  // Hover delay cleanup (optional but cleaner)
   const menuCloseTimeout = React.useRef(null);
 
   return (
@@ -91,8 +93,8 @@ export default function ConverterUI(props) {
         .glass-effect { backdrop-filter: blur(10px); background: rgba(255,255,255,0.9); }
         html { scroll-behavior: smooth; } body { overflow-x: hidden; }
       `}</style>
-      
-      {/* Header - Mobile Responsive */}
+
+      {/* Header */}
       <header
         onMouseEnter={() => setHeaderHovered(true)}
         onMouseLeave={() => setHeaderHovered(false)}
@@ -122,7 +124,7 @@ export default function ConverterUI(props) {
         </div>
       </header>
 
-      {/* Hero Header - Mobile Responsive */}
+      {/* Hero Header */}
       <header className="glass-effect shadow-lg sticky top-0 z-50 border-b-4 border-indigo-500">
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
           <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
@@ -138,8 +140,6 @@ export default function ConverterUI(props) {
         {/* CONVERSION RESULTS SCREEN */}
         {showResults && convertedFile ? (
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-8 hover-lift border-t-4 border-green-500 animate-slideIn">
-            {/* ... (unchanged result screen) ... */}
-            {/* For brevity, result screen code is kept as-is from your file */}
             <div className="text-center mb-6 sm:mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full mb-4">
                 <svg className="w-8 h-8 sm:w-10 sm:h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,9 +216,7 @@ export default function ConverterUI(props) {
             </div>
           </div>
         ) : (
-          // ORIGINAL CONVERTER SCREEN
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-8 hover-lift border-t-4 border-indigo-500">
-            {/* ... file upload section unchanged ... */}
             <div className="mb-4 sm:mb-6">
               <input
                 id="fileInput"
@@ -309,6 +307,7 @@ export default function ConverterUI(props) {
                   </div>
                 )}
               </div>
+
               {files.length > 0 && (
                 <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
                   <div className="flex items-center justify-between mb-3">
@@ -323,9 +322,10 @@ export default function ConverterUI(props) {
                             <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
                           </div>
                           <div className="min-w-0 flex-1">
-  <p className="font-medium text-gray-800 text-xs sm:text-sm truncate">{f.name}</p>
-  <p className="text-xs text-gray-500">{f.formattedSize}</p>
-</div>
+                            <p className="font-medium text-gray-800 text-xs sm:text-sm truncate">{f.name}</p>
+                            {/* ✅ UPDATED: Use formattedSize */}
+                            <p className="text-xs text-gray-500">{f.formattedSize}</p>
+                          </div>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
                           <button onClick={() => setActiveIndex(idx)} className="px-2 sm:px-3 py-1 bg-indigo-100 text-indigo-700 rounded text-xs sm:text-sm">Select</button>
@@ -338,7 +338,7 @@ export default function ConverterUI(props) {
               )}
             </div>
 
-            {/* Output Format - UPDATED FOR HOVER */}
+            {/* Output Format */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
               <span className="text-gray-600 font-medium text-sm sm:text-base">Output:</span>
               <div className="relative flex-1 sm:flex-initial">
@@ -356,7 +356,6 @@ export default function ConverterUI(props) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
                   </svg>
                 </button>
-
                 {showFormatMenu && (
                   <div
                     onMouseEnter={() => {
@@ -409,8 +408,6 @@ export default function ConverterUI(props) {
                   </div>
                 )}
               </div>
-
-              {/* Rest of the buttons unchanged */}
               <button 
                 onClick={() => setIsSettingsOpen(true)}
                 className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
@@ -475,7 +472,8 @@ export default function ConverterUI(props) {
                       />
                     </div>
                     <div className="text-center mt-3 text-xs sm:text-sm text-gray-600 font-medium">
-                      {selectedFileMeta.name} ({(selectedFileMeta.size / 1024).toFixed(2)} KB)
+                      {/* ✅ UPDATED: Use formattedSize */}
+                      {selectedFileMeta.name} ({selectedFileMeta.formattedSize})
                     </div>
                   </div>
                 </div>
@@ -489,10 +487,6 @@ export default function ConverterUI(props) {
             </div>
           </div>
         )}
-
-        {/* Remaining sections unchanged: How to Convert, Tools, Converters, Features, etc. */}
-        {/* For brevity, these are kept as in your original file */}
-        {/* You can copy them directly from your original code — no changes needed */}
 
         {/* How to Convert Section */}
         <div className="mt-8 sm:mt-12 bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 animate-fadeIn" style={{animationDelay: '0.4s', opacity: 0}}>
@@ -701,9 +695,6 @@ export default function ConverterUI(props) {
         </div>
       </main>
 
-      {/* "Are you a happy user?" Section, Upgrade Banner, Footer — all unchanged */}
-      {/* You can keep them exactly as in your original file */}
-
       {/* SETTINGS POPUP MODAL */}
       {isSettingsOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -723,8 +714,9 @@ export default function ConverterUI(props) {
               </button>
             </div>
             <div className="p-5 space-y-5">
+              {/* ✅ UPDATED: Use formattedSize */}
               <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                File Name: {selectedFileMeta?.name || 'N/A'} ({selectedFileMeta ? (selectedFileMeta.size / 1024).toFixed(2) : '0'} KB)
+                File Name: {selectedFileMeta?.name || 'N/A'} ({selectedFileMeta?.formattedSize || '0 Bytes'})
               </div>
               <div className="bg-gray-50 p-4 rounded-xl border">
                 <h4 className="font-semibold mb-3 text-gray-800">Image Options</h4>
@@ -812,7 +804,9 @@ export default function ConverterUI(props) {
           </div>
         </div>
       )}
-<div className="container mx-auto px-4 py-8 max-w-4xl">
+
+      {/* Upgrade Banner */}
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-2xl p-12 text-center text-white relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full opacity-10">
             <div className="absolute top-10 left-10 w-20 h-20 bg-white rounded-full"></div>
@@ -830,6 +824,7 @@ export default function ConverterUI(props) {
           </div>
         </div>
       </div>
+
       {/* Floating Chat */}
       <div className="fixed bottom-6 left-6 z-60">
         {showChat && (

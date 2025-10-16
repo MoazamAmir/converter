@@ -186,8 +186,42 @@ export default function useConverter() {
         ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
         // Determine MIME type
+        // Determine MIME type and handle special formats
         let mimeType;
+        let useDataURL = false;
         const format = conversionFormat.toLowerCase();
+        
+        // Special handling for vector/complex formats
+        if (format === 'svg') {
+          // Convert to SVG format
+          const svgData = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+     width="${targetWidth}" height="${targetHeight}" viewBox="0 0 ${targetWidth} ${targetHeight}">
+  <image width="${targetWidth}" height="${targetHeight}" 
+         xlink:href="${canvas.toDataURL('image/png')}"/>
+</svg>`;
+          
+          const blob = new Blob([svgData], { type: 'image/svg+xml' });
+          const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.svg');
+          const newUrl = URL.createObjectURL(blob);
+          
+          if (convertedFile && convertedFile.url) {
+            try { URL.revokeObjectURL(convertedFile.url); } catch {}
+          }
+          
+          setConvertedFile({
+            name: newFileName,
+            url: newUrl,
+            blob: blob
+          });
+          
+          setTimeout(() => {
+            setIsConverting(false);
+            setShowResults(true);
+          }, 1200);
+          return;
+        }
+        
         switch (format) {
           case 'jpg':
           case 'jpeg':
@@ -209,10 +243,15 @@ export default function useConverter() {
             mimeType = 'image/x-icon';
             break;
           case 'tiff':
-            mimeType = 'image/tiff';
+          case 'tga':
+          case 'eps':
+          case 'psd':
+          case 'odd':
+            // For unsupported formats, use PNG as base
+            mimeType = 'image/png';
             break;
           case 'pdf':
-            mimeType = 'image/png'; // fallback
+            mimeType = 'image/png';
             break;
           default:
             mimeType = 'image/png';
