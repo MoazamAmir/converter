@@ -323,9 +323,9 @@ export default function ConverterUI(props) {
                             <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-medium text-gray-800 text-xs sm:text-sm truncate">{f.name}</p>
-                            <p className="text-xs text-gray-500">{(f.size / 1024).toFixed(2)} KB</p>
-                          </div>
+  <p className="font-medium text-gray-800 text-xs sm:text-sm truncate">{f.name}</p>
+  <p className="text-xs text-gray-500">{f.formattedSize}</p>
+</div>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
                           <button onClick={() => setActiveIndex(idx)} className="px-2 sm:px-3 py-1 bg-indigo-100 text-indigo-700 rounded text-xs sm:text-sm">Select</button>

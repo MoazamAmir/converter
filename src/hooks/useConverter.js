@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 
+// Helper to format file size
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
 export default function useConverter() {
-  const [files, setFiles] = useState([]); // { file, url, name, size }
+  const [files, setFiles] = useState([]); // { file, url, name, size, formattedSize }
   const [activeIndex, setActiveIndex] = useState(0);
   const [convertedFile, setConvertedFile] = useState(null);
   const [conversionFormat, setConversionFormat] = useState('png');
@@ -27,14 +36,26 @@ export default function useConverter() {
     stripMetadata: true
   });
 
-  const addFileObject = (fileObj) => {
-    const url = fileObj.url || URL.createObjectURL(fileObj.file);
-    const newItem = {
-      file: fileObj.file,
+  // Helper to create consistent file item
+  const createFileItem = (file, customUrl = null, customName = null) => {
+    const url = customUrl || URL.createObjectURL(file);
+    const name = customName || file.name;
+    const size = file.size;
+    return {
+      file,
       url,
-      name: fileObj.name || fileObj.file.name,
-      size: fileObj.size || fileObj.file.size
+      name,
+      size,
+      formattedSize: formatFileSize(size)
     };
+  };
+
+  const addFileObject = (fileObj) => {
+    const newItem = createFileItem(
+      fileObj.file,
+      fileObj.url,
+      fileObj.name
+    );
     setFiles((prev) => [...prev, newItem]);
     setShowUploadMenu(false);
     setActiveIndex((prev) => prev + (prev === null ? 0 : 1));
@@ -47,12 +68,7 @@ export default function useConverter() {
       alert('Please select valid image files');
       return;
     }
-    const items = imageFiles.map((f) => ({
-      file: f,
-      url: URL.createObjectURL(f),
-      name: f.name,
-      size: f.size
-    }));
+    const items = imageFiles.map((f) => createFileItem(f));
     setFiles((prev) => [...prev, ...items]);
     setShowUploadMenu(false);
     setActiveIndex((prev) => prev + (prev === null ? 0 : 1));
@@ -72,12 +88,7 @@ export default function useConverter() {
       alert('Please drop valid image files');
       return;
     }
-    const items = imageFiles.map((f) => ({
-      file: f,
-      url: URL.createObjectURL(f),
-      name: f.name,
-      size: f.size
-    }));
+    const items = imageFiles.map((f) => createFileItem(f));
     setFiles((prev) => [...prev, ...items]);
     setShowUploadMenu(false);
     setActiveIndex((prev) => prev + (prev === null ? 0 : 1));
@@ -97,7 +108,11 @@ export default function useConverter() {
       }
       const filename = url.split('/').pop().split('?')[0] || `image-${Date.now()}`;
       const file = new File([blob], filename, { type: blob.type });
-      addFileObject({ file, url: URL.createObjectURL(blob), name: filename, size: file.size });
+      addFileObject({
+        file,
+        url: URL.createObjectURL(blob),
+        name: filename
+      });
     } catch (err) {
       console.error(err);
       alert('Failed to add image from URL');
@@ -120,7 +135,7 @@ export default function useConverter() {
     });
     setConvertedFile(null);
     setActiveIndex((prevIdx) => {
-      if (files.length === 0) return 0;
+      if (files.length <= 1) return 0;
       if (index < prevIdx) return Math.max(prevIdx - 1, 0);
       if (index === prevIdx) return 0;
       return prevIdx;
@@ -236,7 +251,7 @@ export default function useConverter() {
               url: newUrl,
               blob: blob
             });
-            
+
             setTimeout(() => {
               setIsConverting(false);
               setShowResults(true);
