@@ -393,17 +393,47 @@ export default function ConverterUI(props) {
                           </button>
                         ))}
                       </div>
-                      <div className="text-xs font-bold text-indigo-600 px-2 py-1 mt-3 mb-1">Document</div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <button onClick={() => { setConversionFormat('pdf'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">PDF</button>
-                        <button onClick={() => { setConversionFormat('doc'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">DOC</button>
-                        <button onClick={() => { setConversionFormat('txt'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">TXT</button>
-                      </div>
-                      <div className="text-xs font-bold text-indigo-600 px-2 py-1 mt-3 mb-1">Report</div>
-                      <div className="grid grid-cols-3 gap-2">
-                        <button onClick={() => { setConversionFormat('csv'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">CSV</button>
-                        <button onClick={() => { setConversionFormat('xls'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">XLS</button>
-                      </div>
+                    {/* ==== DOCUMENT FORMATS ==== */}
+<div className="text-xs font-bold text-indigo-600 px-2 py-1 mt-3 mb-1">Document</div>
+<div className="grid grid-cols-3 gap-2">
+  <button onClick={() => { setConversionFormat('pdf'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">PDF</button>
+  <button onClick={() => { setConversionFormat('doc'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">DOC</button>
+  <button onClick={() => { setConversionFormat('txt'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">TXT</button>
+  <button onClick={() => { setConversionFormat('docx'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">DOCX</button>
+  <button onClick={() => { setConversionFormat('word'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">WORD</button>
+</div>
+
+{/* ==== REPORT FORMATS ==== */}
+<div className="text-xs font-bold text-indigo-600 px-2 py-1 mt-3 mb-1">Report</div>
+<div className="grid grid-cols-3 gap-2">
+  <button onClick={() => { setConversionFormat('csv'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">CSV</button>
+  <button onClick={() => { setConversionFormat('xls'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">XLS</button>
+</div>
+
+{/* ==== CONVERTED FILE PREVIEW & DOWNLOAD ==== */}
+{convertedFile && (
+  <div className="mt-6 border-t border-gray-200 pt-4 text-center">
+    <div className="text-xs font-bold text-indigo-600 mb-2">Converted File</div>
+    {convertedFile.name.match(/\.(png|jpg|jpeg|gif|webp)$/i) ? (
+      <img
+        src={convertedFile.url}
+        alt="Converted"
+        className="mx-auto rounded shadow-md max-w-full h-auto"
+      />
+    ) : (
+      <div className="p-3 bg-gray-100 rounded text-sm text-gray-700">
+        Converted file: <b>{convertedFile.name}</b>
+      </div>
+    )}
+    <button
+      onClick={handleDownload}
+      className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+    >
+      Download {convertedFile.name.split('.').pop().toUpperCase()} File
+    </button>
+  </div>
+)}
+
                     </div>
                   </div>
                 )}

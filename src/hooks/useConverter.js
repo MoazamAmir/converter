@@ -213,10 +213,6 @@ if (format === 'svg') {
   const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.svg');
   const newUrl = URL.createObjectURL(blob);
 
-  if (convertedFile && convertedFile.url) {
-    try { URL.revokeObjectURL(convertedFile.url); } catch {}
-  }
-
   setConvertedFile({ name: newFileName, url: newUrl, blob });
   setTimeout(() => {
     setIsConverting(false);
@@ -236,7 +232,6 @@ if (format === 'pdf') {
 
   const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-  // ✅ Using jsPDF for proper rendering
   const pdf = new jsPDF({
     orientation: targetWidth > targetHeight ? 'l' : 'p',
     unit: 'px',
@@ -245,6 +240,52 @@ if (format === 'pdf') {
   pdf.addImage(imgData, 'JPEG', 0, 0, targetWidth, targetHeight);
   const blob = pdf.output('blob');
   const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.pdf');
+  const newUrl = URL.createObjectURL(blob);
+
+  setConvertedFile({ name: newFileName, url: newUrl, blob });
+  setTimeout(() => {
+    setIsConverting(false);
+    setShowResults(true);
+  }, 1200);
+  return;
+}
+
+// ==================== DOC / DOCX / WORD / TXT FORMAT (FIXED) ====================
+if (['doc', 'docx', 'word', 'txt'].includes(format)) {
+  let progress = 0;
+  const progressInterval = setInterval(() => {
+    progress += 10;
+    setDownloadProgress(progress);
+    if (progress >= 100) clearInterval(progressInterval);
+  }, 100);
+
+  const imgData = canvas.toDataURL('image/png');
+  let content, mimeTypeDoc;
+
+  if (format === 'txt') {
+    // Just save simple text info
+    content = `Image File: ${selectedFile.name}\nConverted to TXT format.\n\n(Base64 image data omitted.)`;
+    mimeTypeDoc = 'text/plain';
+  } else {
+    // HTML content compatible with Word (shows image)
+    content = `
+      <html xmlns:v="urn:schemas-microsoft-com:vml"
+            xmlns:o="urn:schemas-microsoft-com:office:office"
+            xmlns:w="urn:schemas-microsoft-com:office:word"
+            xmlns:m="http://schemas.microsoft.com/office/2004/12/omml"
+            xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="utf-8"></head>
+        <body>
+          <h2>Converted Image: ${selectedFile.name}</h2>
+          <img src="${imgData}" style="max-width:100%;height:auto;"/>
+        </body>
+      </html>
+    `;
+    mimeTypeDoc = 'application/msword'; // Works for doc, docx, and word
+  }
+
+  const blob = new Blob([content], { type: mimeTypeDoc });
+  const newFileName = selectedFile.name.replace(/\.[^/.]+$/, `.${format}`);
   const newUrl = URL.createObjectURL(blob);
 
   if (convertedFile && convertedFile.url) {
@@ -258,9 +299,8 @@ if (format === 'pdf') {
   }, 1200);
   return;
 }
-
-// ==================== DOC / TXT FORMAT ====================
-if (format === 'doc' || format === 'txt') {
+// ==================== TXT FORMAT ====================
+if (format === 'txt') {
   let progress = 0;
   const progressInterval = setInterval(() => {
     progress += 10;
@@ -268,24 +308,10 @@ if (format === 'doc' || format === 'txt') {
     if (progress >= 100) clearInterval(progressInterval);
   }, 100);
 
-  const imgData = canvas.toDataURL('image/png');
-  let content, mimeTypeDoc;
-
-  if (format === 'txt') {
-    content = `Image File: ${selectedFile.name}\nConverted to TXT format\nImage Data URL:\n${imgData}`;
-    mimeTypeDoc = 'text/plain';
-  } else {
-    content = `{\\rtf1\\ansi\\deff0\n{\\pict\\pngblip\\picw${targetWidth}\\pich${targetHeight}\n${imgData}\n}\n}`;
-    mimeTypeDoc = 'application/msword';
-  }
-
-  const blob = new Blob([content], { type: mimeTypeDoc });
-  const newFileName = selectedFile.name.replace(/\.[^/.]+$/, `.${format}`);
+  const textContent = `Image: ${selectedFile.name}\nWidth: ${targetWidth}px\nHeight: ${targetHeight}px\nConverted from image file.`;
+  const blob = new Blob([textContent], { type: 'text/plain' });
+  const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.txt');
   const newUrl = URL.createObjectURL(blob);
-
-  if (convertedFile && convertedFile.url) {
-    try { URL.revokeObjectURL(convertedFile.url); } catch {}
-  }
 
   setConvertedFile({ name: newFileName, url: newUrl, blob });
   setTimeout(() => {
