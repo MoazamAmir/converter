@@ -11,17 +11,14 @@ const formatFileSize = (bytes) => {
 };
 
 export default function useConverter() {
-  const [files, setFiles] = useState([]); // { file, url, name, size, formattedSize }
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [convertedFile, setConvertedFile] = useState(null);
-  const [conversionFormat, setConversionFormat] = useState('png');
+  // Each file now includes its own outputFormat
+  const [files, setFiles] = useState([]); // { file, url, name, size, formattedSize, outputFormat }
+  const [convertedFiles, setConvertedFiles] = useState([]); // Array of { name, url, blob, originalIndex }
   const [isConverting, setIsConverting] = useState(false);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [showUploadMenu, setShowUploadMenu] = useState(false);
-  const [showFormatMenu, setShowFormatMenu] = useState(false);
+  const [showFormatMenuFor, setShowFormatMenuFor] = useState(null); // index of file whose format menu is open
   const [formatSearch, setFormatSearch] = useState('');
-
-  // === NEW: Settings State ===
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -47,19 +44,15 @@ export default function useConverter() {
       url,
       name,
       size,
-      formattedSize: formatFileSize(size)
+      formattedSize: formatFileSize(size),
+      outputFormat: 'png' // default per-file format
     };
   };
 
   const addFileObject = (fileObj) => {
-    const newItem = createFileItem(
-      fileObj.file,
-      fileObj.url,
-      fileObj.name
-    );
+    const newItem = createFileItem(fileObj.file, fileObj.url, fileObj.name);
     setFiles((prev) => [...prev, newItem]);
     setShowUploadMenu(false);
-    setActiveIndex((prev) => prev + (prev === null ? 0 : 1));
   };
 
   const handleFileChange = (e) => {
@@ -72,14 +65,10 @@ export default function useConverter() {
     const items = imageFiles.map((f) => createFileItem(f));
     setFiles((prev) => [...prev, ...items]);
     setShowUploadMenu(false);
-    setActiveIndex((prev) => prev + (prev === null ? 0 : 1));
     e.target.value = '';
   };
 
-  // drag & drop handlers
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
+  const handleDragOver = (e) => e.preventDefault();
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -92,7 +81,6 @@ export default function useConverter() {
     const items = imageFiles.map((f) => createFileItem(f));
     setFiles((prev) => [...prev, ...items]);
     setShowUploadMenu(false);
-    setActiveIndex((prev) => prev + (prev === null ? 0 : 1));
   };
 
   const handleAddFromUrl = async () => {
@@ -127,361 +115,29 @@ export default function useConverter() {
 
   const handleRemoveFile = (index) => {
     setFiles((prev) => {
-      const newArr = prev.slice();
+      const newArr = [...prev];
       const removed = newArr.splice(index, 1)[0];
-      if (removed && removed.url) {
-        try { URL.revokeObjectURL(removed.url); } catch {}
-      }
+      if (removed && removed.url) URL.revokeObjectURL(removed.url);
       return newArr;
     });
-    setConvertedFile(null);
-    setActiveIndex((prevIdx) => {
-      if (files.length <= 1) return 0;
-      if (index < prevIdx) return Math.max(prevIdx - 1, 0);
-      if (index === prevIdx) return 0;
-      return prevIdx;
-    });
+    setConvertedFiles([]);
   };
 
-  const selectedFile = files[activeIndex] ? files[activeIndex].file : null;
-  const selectedFileMeta = files[activeIndex] || null;
-
-  const handleConvert = async () => {
-    if (!selectedFile) {
-      alert('Please select an image first');
-      return;
-    }
-
-    setIsConverting(true);
-    setDownloadProgress(0);
-
-    try {
-      const img = new Image();
-      img.src = URL.createObjectURL(selectedFile);
-
-      img.onload = async () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        let targetWidth = img.width;
-        let targetHeight = img.height;
-
-        // Apply resize settings
-        if (settings.resize === 'custom' && settings.width && settings.height) {
-          targetWidth = parseInt(settings.width, 10);
-          targetHeight = parseInt(settings.height, 10);
-        } else if (settings.resize === 'percent' && settings.width) {
-          const scale = parseFloat(settings.width) / 100;
-          targetWidth = Math.round(img.width * scale);
-          targetHeight = Math.round(img.height * scale);
-        }
-
-        canvas.width = targetWidth;
-        canvas.height = targetHeight;
-
-        // Fill background color (for transparency)
-        ctx.fillStyle = settings.bgColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Draw image
-        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-        const format = conversionFormat.toLowerCase();
-
-        // ==================== SVG FORMAT ====================
-        if (format === 'svg') {
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += 10;
-            setDownloadProgress(progress);
-            if (progress >= 100) clearInterval(progressInterval);
-          }, 100);
-
-          const svgData = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-     width="${targetWidth}" height="${targetHeight}" viewBox="0 0 ${targetWidth} ${targetHeight}">
-  <image width="${targetWidth}" height="${targetHeight}" 
-         xlink:href="${canvas.toDataURL('image/png')}"/>
-</svg>`;
-
-          const blob = new Blob([svgData], { type: 'image/svg+xml' });
-          const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.svg');
-          const newUrl = URL.createObjectURL(blob);
-
-          setConvertedFile({ name: newFileName, url: newUrl, blob });
-          setTimeout(() => {
-            setIsConverting(false);
-            setShowResults(true);
-          }, 1200);
-          return;
-        }
-
-        // ==================== PDF FORMAT ====================
-        if (format === 'pdf') {
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += 10;
-            setDownloadProgress(progress);
-            if (progress >= 100) clearInterval(progressInterval);
-          }, 100);
-
-          const imgData = canvas.toDataURL('image/jpeg', 0.95);
-
-          const pdf = new jsPDF({
-            orientation: targetWidth > targetHeight ? 'l' : 'p',
-            unit: 'px',
-            format: [targetWidth, targetHeight],
-          });
-          pdf.addImage(imgData, 'JPEG', 0, 0, targetWidth, targetHeight);
-          const blob = pdf.output('blob');
-          const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.pdf');
-          const newUrl = URL.createObjectURL(blob);
-
-          setConvertedFile({ name: newFileName, url: newUrl, blob });
-          setTimeout(() => {
-            setIsConverting(false);
-            setShowResults(true);
-          }, 1200);
-          return;
-        }
-
-        // ==================== TXT FORMAT ====================
-        if (format === 'txt') {
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += 10;
-            setDownloadProgress(progress);
-            if (progress >= 100) clearInterval(progressInterval);
-          }, 100);
-
-          const textContent = `Image: ${selectedFile.name}\nWidth: ${targetWidth}px\nHeight: ${targetHeight}px\nConverted from image file.`;
-          const blob = new Blob([textContent], { type: 'text/plain' });
-          const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.txt');
-          const newUrl = URL.createObjectURL(blob);
-
-          setConvertedFile({ name: newFileName, url: newUrl, blob });
-          setTimeout(() => {
-            setIsConverting(false);
-            setShowResults(true);
-          }, 1200);
-          return;
-        }
-
-        // ==================== CSV / XLS FORMAT ====================
-        if (format === 'csv' || format === 'xls') {
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += 10;
-            setDownloadProgress(progress);
-            if (progress >= 100) clearInterval(progressInterval);
-          }, 100);
-
-          let content, mimeTypeSheet;
-          if (format === 'csv') {
-            content = `File Name,Width,Height,Format\n${selectedFile.name},${targetWidth},${targetHeight},${selectedFile.type}`;
-            mimeTypeSheet = 'text/csv';
-          } else {
-            content = `File Name\tWidth\tHeight\tFormat\n${selectedFile.name}\t${targetWidth}\t${targetHeight}\t${selectedFile.type}`;
-            mimeTypeSheet = 'application/vnd.ms-excel';
-          }
-
-          const blob = new Blob([content], { type: mimeTypeSheet });
-          const newFileName = selectedFile.name.replace(/\.[^/.]+$/, `.${format}`);
-          const newUrl = URL.createObjectURL(blob);
-
-          if (convertedFile && convertedFile.url) {
-            try { URL.revokeObjectURL(convertedFile.url); } catch {}
-          }
-
-          setConvertedFile({ name: newFileName, url: newUrl, blob });
-          setTimeout(() => {
-            setIsConverting(false);
-            setShowResults(true);
-          }, 1200);
-          return;
-        }
-
-        // ==================== DOCX FORMAT (REAL .docx using 'docx' library) ====================
-        if (['doc', 'docx', 'word'].includes(format)) {
-          let progress = 0;
-          const progressInterval = setInterval(() => {
-            progress += 15;
-            setDownloadProgress(progress);
-            if (progress >= 100) clearInterval(progressInterval);
-          }, 120);
-
-          try {
-            // Dynamically import to avoid SSR issues (e.g., Next.js)
-            const { Document, Paragraph, ImageRun, Packer } = await import('docx');
-
-            // Get image as ArrayBuffer
-            const imgArrayBuffer = await selectedFile.arrayBuffer();
-
-            // Scale image if too large (Word has limits)
-            const maxWidth = 500;
-            const scale = targetWidth > maxWidth ? maxWidth / targetWidth : 1;
-            const docWidth = Math.round(targetWidth * scale);
-            const docHeight = Math.round(targetHeight * scale);
-
-            const doc = new Document({
-              sections: [
-                {
-                  children: [
-                    new Paragraph({
-                      children: [
-                        new ImageRun({
-                          data: imgArrayBuffer,
-                          transformation: {
-                            width: docWidth,
-                            height: docHeight,
-                          },
-                        }),
-                      ],
-                    }),
-                  ],
-                },
-              ],
-            });
-
-            const blob = await Packer.toBlob(doc);
-            const newFileName = selectedFile.name.replace(/\.[^/.]+$/, '.docx');
-            const newUrl = URL.createObjectURL(blob);
-
-            if (convertedFile && convertedFile.url) {
-              try { URL.revokeObjectURL(convertedFile.url); } catch {}
-            }
-
-            setConvertedFile({ name: newFileName, url: newUrl, blob });
-          } catch (err) {
-            console.error('DOCX generation failed:', err);
-            alert('Failed to create Word document. Try another format.');
-          } finally {
-            clearInterval(progressInterval);
-            setDownloadProgress(100);
-            setIsConverting(false);
-            setShowResults(true);
-          }
-          return;
-        }
-
-        // ==================== STANDARD IMAGE FORMATS ====================
-        let mimeType;
-        switch (format) {
-          case 'jpg':
-          case 'jpeg':
-            mimeType = 'image/jpeg';
-            break;
-          case 'png':
-            mimeType = 'image/png';
-            break;
-          case 'webp':
-            mimeType = 'image/webp';
-            break;
-          case 'bmp':
-            mimeType = 'image/bmp';
-            break;
-          case 'gif':
-            mimeType = 'image/gif';
-            break;
-          case 'ico':
-            mimeType = 'image/x-icon';
-            break;
-          case 'tiff':
-          case 'tga':
-          case 'eps':
-          case 'psd':
-          case 'odd':
-            mimeType = 'image/png'; // fallback
-            break;
-          default:
-            mimeType = 'image/png';
-        }
-
-        // Determine quality
-        let quality = 0.9;
-        if (mimeType === 'image/jpeg' || mimeType === 'image/webp') {
-          if (settings.compression === 'low') quality = 0.5;
-          else if (settings.compression === 'medium') quality = 0.7;
-          else if (settings.compression === 'high') quality = 0.9;
-          else quality = 0.9;
-        }
-
-        // Simulate progress
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-          progress += 10;
-          setDownloadProgress(progress);
-          if (progress >= 100) {
-            clearInterval(progressInterval);
-          }
-        }, 100);
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const newFileName = selectedFile.name.replace(/\.[^/.]+$/, `.${format}`);
-            const newUrl = URL.createObjectURL(blob);
-
-            if (convertedFile && convertedFile.url) {
-              try { URL.revokeObjectURL(convertedFile.url); } catch {}
-            }
-
-            setConvertedFile({
-              name: newFileName,
-              url: newUrl,
-              blob: blob
-            });
-
-            setTimeout(() => {
-              setIsConverting(false);
-              setShowResults(true);
-            }, 1200);
-          }
-        }, mimeType, quality);
-      };
-
-      img.onerror = () => {
-        alert('Error loading image for conversion');
-        setIsConverting(false);
-      };
-    } catch (error) {
-      console.error('Conversion error:', error);
-      alert('An error occurred during conversion');
-      setIsConverting(false);
-    }
-  };
-
-  const handleDownload = () => {
-    if (!convertedFile) return;
-
-    const link = document.createElement('a');
-    link.href = convertedFile.url;
-    link.download = convertedFile.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleConvertMore = () => {
-    resetConverter();
-  };
-
-  const resetConverter = () => {
-    files.forEach((f) => {
-      try { URL.revokeObjectURL(f.url); } catch {}
-    });
-    if (convertedFile && convertedFile.url) {
-      try { URL.revokeObjectURL(convertedFile.url); } catch {}
-    }
-    setFiles([]);
-    setActiveIndex(0);
-    setConvertedFile(null);
-    setIsConverting(false);
-    setShowResults(false);
-    setDownloadProgress(0);
+  const setFileOutputFormat = (index, format) => {
+    setFiles(prev =>
+      prev.map((f, i) =>
+        i === index ? { ...f, outputFormat: format } : f
+      )
+    );
+    setShowFormatMenuFor(null);
+    setFormatSearch('');
   };
 
   const formats = [
     { name: 'BMP', value: 'bmp' },
+    { name: 'CSV', value: 'csv' },
+    { name: 'DOC', value: 'doc' },
+    { name: 'DOCX', value: 'docx' },
     { name: 'EPS', value: 'eps' },
     { name: 'GIF', value: 'gif' },
     { name: 'ICO', value: 'ico' },
@@ -496,80 +152,217 @@ export default function useConverter() {
     { name: 'TIFF', value: 'tiff' },
     { name: 'TXT', value: 'txt' },
     { name: 'WebP', value: 'webp' },
-    { name: 'DOCX', value: 'docx' }, // Only DOCX is supported properly
-    { name: 'CSV', value: 'csv' },
     { name: 'XLS', value: 'xls' }
   ];
 
-  const filteredFormats = formats.filter(f => 
+  const filteredFormats = formats.filter(f =>
     f.name.toLowerCase().includes(formatSearch.toLowerCase()) ||
     f.value.toLowerCase().includes(formatSearch.toLowerCase())
   );
 
-  // Cleanup on unmount
+  const convertSingleFile = async (fileItem, index) => {
+    const { file, outputFormat } = fileItem;
+    const img = new Image();
+    const imgLoadPromise = new Promise((resolve, reject) => {
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Image load failed'));
+      img.src = URL.createObjectURL(file);
+    });
+
+    await imgLoadPromise;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let targetWidth = img.width;
+    let targetHeight = img.height;
+
+    if (settings.resize === 'custom' && settings.width && settings.height) {
+      targetWidth = parseInt(settings.width, 10);
+      targetHeight = parseInt(settings.height, 10);
+    } else if (settings.resize === 'percent' && settings.width) {
+      const scale = parseFloat(settings.width) / 100;
+      targetWidth = Math.round(img.width * scale);
+      targetHeight = Math.round(img.height * scale);
+    }
+
+    canvas.width = targetWidth;
+    canvas.height = targetHeight;
+    ctx.fillStyle = settings.bgColor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+    const format = outputFormat.toLowerCase();
+
+    // === Handle non-image formats ===
+    if (['pdf', 'txt', 'csv', 'xls', 'doc', 'docx', 'svg'].includes(format)) {
+      let blob, newFileName, newUrl;
+
+      if (format === 'svg') {
+        const svgData = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+     width="${targetWidth}" height="${targetHeight}" viewBox="0 0 ${targetWidth} ${targetHeight}">
+  <image width="${targetWidth}" height="${targetHeight}" 
+         xlink:href="${canvas.toDataURL('image/png')}"/>
+</svg>`;
+        blob = new Blob([svgData], { type: 'image/svg+xml' });
+        newFileName = file.name.replace(/\.[^/.]+$/, '.svg');
+      } else if (format === 'pdf') {
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const pdf = new jsPDF({
+          orientation: targetWidth > targetHeight ? 'l' : 'p',
+          unit: 'px',
+          format: [targetWidth, targetHeight],
+        });
+        pdf.addImage(imgData, 'JPEG', 0, 0, targetWidth, targetHeight);
+        blob = pdf.output('blob');
+        newFileName = file.name.replace(/\.[^/.]+$/, '.pdf');
+      } else if (format === 'txt') {
+        const textContent = `Image File: ${file.name}\nWidth: ${targetWidth}px\nHeight: ${targetHeight}px\nFile Size: ${formatFileSize(file.size)}\nFormat: ${file.type}`;
+        blob = new Blob([textContent], { type: 'text/plain' });
+        newFileName = file.name.replace(/\.[^/.]+$/, '.txt');
+      } else if (format === 'csv') {
+        const content = `File Name,Width,Height,File Size,Format\n${file.name},${targetWidth}px,${targetHeight}px,${formatFileSize(file.size)},${file.type}`;
+        blob = new Blob([content], { type: 'text/csv' });
+        newFileName = file.name.replace(/\.[^/.]+$/, '.csv');
+      } else if (format === 'xls') {
+        const content = `File Name\tWidth\tHeight\tFile Size\tFormat\n${file.name}\t${targetWidth}px\t${targetHeight}px\t${formatFileSize(file.size)}\t${file.type}`;
+        blob = new Blob([content], { type: 'application/vnd.ms-excel' });
+        newFileName = file.name.replace(/\.[^/.]+$/, '.xls');
+      } else if (format === 'doc') {
+        const rtf = `{\\rtf1\\ansi\\deff0\n{\\fonttbl{\\f0 Arial;}}\n\\viewkind4\\uc1\\pard\n{\\b IMAGE REPORT}\\par\nFile: ${file.name}\\par\nSize: ${formatFileSize(file.size)}\\par\n}`;
+        blob = new Blob([rtf], { type: 'application/msword' });
+        newFileName = file.name.replace(/\.[^/.]+$/, '.doc');
+      } else if (['docx', 'word'].includes(format)) {
+        const text = `IMAGE REPORT\nFile: ${file.name}\nSize: ${formatFileSize(file.size)}`;
+        blob = new Blob([text], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        newFileName = file.name.replace(/\.[^/.]+$/, '.docx');
+      }
+
+      newUrl = URL.createObjectURL(blob);
+      return { name: newFileName, url: newUrl, blob, originalIndex: index };
+    }
+
+    // === Standard image formats ===
+    let mimeType = 'image/png';
+    switch (format) {
+      case 'jpg':
+      case 'jpeg': mimeType = 'image/jpeg'; break;
+      case 'png': mimeType = 'image/png'; break;
+      case 'webp': mimeType = 'image/webp'; break;
+      case 'bmp': mimeType = 'image/bmp'; break;
+      case 'gif': mimeType = 'image/gif'; break;
+      case 'ico': mimeType = 'image/x-icon'; break;
+      default: mimeType = 'image/png';
+    }
+
+    let quality = 0.9;
+    if (['image/jpeg', 'image/webp'].includes(mimeType)) {
+      if (settings.compression === 'low') quality = 0.5;
+      else if (settings.compression === 'medium') quality = 0.7;
+    }
+
+    const blobPromise = new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        const newFileName = file.name.replace(/\.[^/.]+$/, `.${format}`);
+        const newUrl = URL.createObjectURL(blob);
+        resolve({ name: newFileName, url: newUrl, blob, originalIndex: index });
+      }, mimeType, quality);
+    });
+
+    return blobPromise;
+  };
+
+  const handleConvert = async () => {
+    if (files.length === 0) {
+      alert('Please add at least one image');
+      return;
+    }
+
+    setIsConverting(true);
+    setDownloadProgress(0);
+    setConvertedFiles([]);
+
+    try {
+      const promises = files.map((fileItem, idx) => convertSingleFile(fileItem, idx));
+      const results = await Promise.all(promises);
+
+      setConvertedFiles(results);
+      setDownloadProgress(100);
+      setShowResults(true);
+    } catch (err) {
+      console.error('Batch conversion error:', err);
+      alert('Conversion failed for one or more files.');
+    } finally {
+      setIsConverting(false);
+    }
+  };
+
+  const handleDownload = (convertedFile) => {
+    const link = document.createElement('a');
+    link.href = convertedFile.url;
+    link.download = convertedFile.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleConvertMore = () => resetConverter();
+
+  const resetConverter = () => {
+    files.forEach(f => URL.revokeObjectURL(f.url));
+    convertedFiles.forEach(f => URL.revokeObjectURL(f.url));
+    setFiles([]);
+    setConvertedFiles([]);
+    setIsConverting(false);
+    setShowResults(false);
+    setDownloadProgress(0);
+  };
+
+  // Cleanup
   useEffect(() => {
     return () => {
-      files.forEach((f) => {
-        try { URL.revokeObjectURL(f.url); } catch {}
-      });
-      if (convertedFile && convertedFile.url) {
-        try { URL.revokeObjectURL(convertedFile.url); } catch {}
-      }
+      files.forEach(f => URL.revokeObjectURL(f.url));
+      convertedFiles.forEach(f => URL.revokeObjectURL(f.url));
     };
-  }, [files, convertedFile]);
+  }, [files, convertedFiles]);
 
-  // Chat UI state & handlers
+  // === Chat State (unchanged) ===
   const [showChat, setShowChat] = useState(false);
   const [chatMessages, setChatMessages] = useState([
     { id: 1, from: 'bot', text: 'Hi! I am ImageBot. Click the cat to start chatting.' }
   ]);
   const [chatInput, setChatInput] = useState('');
 
-  const handleChatToggle = () => {
-    setShowChat((s) => !s);
-  };
-
+  const handleChatToggle = () => setShowChat(s => !s);
   const sendChatMessage = () => {
     const text = chatInput.trim();
     if (!text) return;
-    const userMsg = { id: Date.now(), from: 'user', text };
-    setChatMessages((prev) => [...prev, userMsg]);
+    setChatMessages(p => [...p, { id: Date.now(), from: 'user', text }]);
     setChatInput('');
-
-    // simulated bot reply
     setTimeout(() => {
-      const botMsg = {
+      setChatMessages(p => [...p, {
         id: Date.now() + 1,
         from: 'bot',
-        text:
-          "I'm a demo assistant. I can't perform actions outside this page, but I can help with tips: try uploading an image and selecting an output format."
-      };
-      setChatMessages((prev) => [...prev, botMsg]);
+        text: "I'm a demo assistant. Try uploading multiple images and assigning different output formats!"
+      }]);
     }, 700);
   };
-
-  const handleChatKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      sendChatMessage();
-    }
-  };
+  const handleChatKeyDown = (e) => { if (e.key === 'Enter') { e.preventDefault(); sendChatMessage(); } };
 
   return {
     files,
     setFiles,
-    activeIndex,
-    setActiveIndex,
-    convertedFile,
-    conversionFormat,
-    setConversionFormat,
+    convertedFiles,
+    conversionFormat: null, // deprecated
+    setConversionFormat: () => {}, // deprecated
     isConverting,
     isToolsOpen,
     setIsToolsOpen,
     showUploadMenu,
     setShowUploadMenu,
-    showFormatMenu,
-    setShowFormatMenu,
+    showFormatMenuFor,
+    setShowFormatMenuFor,
     formatSearch,
     setFormatSearch,
     showDropdown,
@@ -591,14 +384,13 @@ export default function useConverter() {
     handleAddFromUrl,
     handleCloudFallback,
     handleRemoveFile,
-    selectedFile,
-    selectedFileMeta,
     handleConvert,
     handleDownload,
     handleConvertMore,
     resetConverter,
     formats,
     filteredFormats,
+    setFileOutputFormat,
     handleChatToggle,
     showChat,
     setShowChat,

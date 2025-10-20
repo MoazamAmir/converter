@@ -4,52 +4,40 @@ export default function ConverterUI(props) {
   const {
     files,
     setFiles,
-    activeIndex,
-    setActiveIndex,
-    convertedFile,
-    conversionFormat,
-    setConversionFormat,
+    convertedFiles,
     isConverting,
     isToolsOpen,
     setIsToolsOpen,
     showUploadMenu,
     setShowUploadMenu,
-    showFormatMenu,
-    setShowFormatMenu,
     formatSearch,
     setFormatSearch,
-    showDropdown,
-    setShowDropdown,
     isSettingsOpen,
     setIsSettingsOpen,
     showResults,
-    setShowResults,
     downloadProgress,
-    setDownloadProgress,
     isConvertersOpen,
     setIsConvertersOpen,
     settings,
     setSettings,
-    addFileObject,
     handleFileChange,
     handleDragOver,
     handleDrop,
     handleAddFromUrl,
     handleCloudFallback,
     handleRemoveFile,
-    selectedFile,
-    selectedFileMeta,
     handleConvert,
     handleDownload,
     handleConvertMore,
     resetConverter,
     formats,
     filteredFormats,
+    setFileOutputFormat,
+    showFormatMenuFor,
+    setShowFormatMenuFor,
     handleChatToggle,
     showChat,
-    setShowChat,
     chatMessages,
-    setChatMessages,
     chatInput,
     setChatInput,
     sendChatMessage,
@@ -57,32 +45,37 @@ export default function ConverterUI(props) {
   } = props;
 
   const [headerHovered, setHeaderHovered] = React.useState(false);
+  const [showDownloadMenuFor, setShowDownloadMenuFor] = React.useState(null);
+  const menuCloseTimeout = React.useRef(null);
 
   React.useEffect(() => {
-    if (typeof setShowDropdown === 'function') {
-      setShowDropdown(headerHovered);
+    if (typeof props.setShowDropdown === 'function') {
+      props.setShowDropdown(headerHovered);
     }
-  }, [headerHovered, setShowDropdown]);
+  }, [headerHovered, props.setShowDropdown]);
 
-  const menuCloseTimeout = React.useRef(null);
+  const openFormatMenu = (index) => {
+    setShowFormatMenuFor(index);
+    setFormatSearch('');
+  };
+
+  const closeFormatMenu = () => {
+    setShowFormatMenuFor(null);
+    setFormatSearch('');
+  };
+
+  const toggleDownloadMenu = (index) => {
+    setShowDownloadMenuFor(showDownloadMenuFor === index ? null : index);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 overflow-x-hidden">
       <style>{`
-        @keyframes gradient {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes slideIn {
-          from { opacity: 0; transform: scale(0.9); }
-          to { opacity: 1; transform: scale(1); }
-        }
+        @keyframes slideIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
         .animate-gradient { background-size: 200% 200%; animation: gradient 15s ease infinite; }
         .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
         .animate-bounce-slow { animation: bounce 2s ease-in-out infinite; }
@@ -115,7 +108,7 @@ export default function ConverterUI(props) {
           <div className="flex items-center gap-2 sm:gap-3">
             <button className="hidden sm:block px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-indigo-600 text-indigo-600 rounded hover:bg-indigo-50">Log In</button>
             <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700">Sign Up</button>
-            <button onClick={() => setShowDropdown(prev => !prev)} className="md:hidden ml-1 sm:ml-2 p-1.5 sm:p-2 rounded-lg border border-gray-200">
+            <button onClick={() => props.setShowDropdown?.(prev => !prev)} className="md:hidden ml-1 sm:ml-2 p-1.5 sm:p-2 rounded-lg border border-gray-200">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
               </svg>
@@ -138,7 +131,7 @@ export default function ConverterUI(props) {
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
         {/* CONVERSION RESULTS SCREEN */}
-        {showResults && convertedFile ? (
+        {showResults && convertedFiles.length > 0 ? (
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-8 hover-lift border-t-4 border-green-500 animate-slideIn">
             <div className="text-center mb-6 sm:mb-8">
               <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full mb-4">
@@ -146,71 +139,76 @@ export default function ConverterUI(props) {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Conversion Complete!</h2>
-              <p className="text-sm sm:text-base text-gray-600">Your image has been successfully converted</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+                {convertedFiles.length} File{convertedFiles.length > 1 ? 's' : ''} Converted!
+              </h2>
+              <p className="text-sm sm:text-base text-gray-600">Your images have been successfully converted</p>
             </div>
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg sm:rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-lg">
-              <div className="border-2 rounded-lg p-2 bg-white shadow-inner mb-4">
-                <img
-                  src={convertedFile.url}
-                  alt="Converted"
-                  className="w-full h-auto rounded max-h-64 sm:max-h-96 object-contain"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
-                <div className="bg-white p-2 sm:p-3 rounded-lg shadow">
-                  <p className="text-xs text-gray-500 mb-1">File Name</p>
-                  <p className="text-xs sm:text-sm font-semibold text-gray-800 truncate">{convertedFile.name}</p>
+
+            <div className="space-y-6">
+              {convertedFiles.map((cf, idx) => (
+                <div key={cf.name} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-lg">
+                  <div className="border-2 rounded-lg p-2 bg-white shadow-inner mb-4">
+                    {cf.name.match(/\.(png|jpg|jpeg|gif|webp|svg)$/i) ? (
+                      <img src={cf.url} alt="Converted" className="w-full h-auto rounded max-h-64 sm:max-h-96 object-contain" />
+                    ) : (
+                      <div className="text-center py-6 text-gray-600">📄 {cf.name}</div>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4">
+                    <div className="bg-white p-2 sm:p-3 rounded-lg shadow">
+                      <p className="text-xs text-gray-500 mb-1">File Name</p>
+                      <p className="text-xs sm:text-sm font-semibold text-gray-800 truncate">{cf.name}</p>
+                    </div>
+                    <div className="bg-white p-2 sm:p-3 rounded-lg shadow">
+                      <p className="text-xs text-gray-500 mb-1">Format</p>
+                      <p className="text-xs sm:text-sm font-semibold text-indigo-600 uppercase">
+                        {cf.name.split('.').pop()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <button
+                        onClick={() => toggleDownloadMenu(idx)}
+                        className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium"
+                      >
+                        Download {cf.name.split('.').pop().toUpperCase()}
+                      </button>
+                      {showDownloadMenuFor === idx && (
+                        <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg z-10 border">
+                          <button
+                            onClick={() => {
+                              handleDownload(cf);
+                              toggleDownloadMenu(idx);
+                            }}
+                            className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                          >
+                            Save to Device
+                          </button>
+                          <button className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-500 cursor-not-allowed">
+                            Save to Cloud (Coming Soon)
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-white p-2 sm:p-3 rounded-lg shadow">
-                  <p className="text-xs text-gray-500 mb-1">Format</p>
-                  <p className="text-xs sm:text-sm font-semibold text-indigo-600 uppercase">{conversionFormat}</p>
-                </div>
-              </div>
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs sm:text-sm font-medium text-gray-700">Ready to Download</span>
-                  <span className="text-xs sm:text-sm font-bold text-green-600">{downloadProgress}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 sm:h-3 overflow-hidden">
-                  <div 
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 h-full rounded-full transition-all duration-300"
-                    style={{ width: `${downloadProgress}%` }}
-                  ></div>
-                </div>
-              </div>
+              ))}
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <button
-                onClick={handleDownload}
-                className="flex-1 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg sm:rounded-xl hover:shadow-xl transition-all duration-300 transform hover:scale-105 font-bold flex items-center justify-center gap-2 text-sm sm:text-base"
-              >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                Download Image
-              </button>
+
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleConvertMore}
-                className="flex-1 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg sm:rounded-xl hover:shadow-xl transition-all duration-300 transform hover:scale-105 font-bold flex items-center justify-center gap-2 text-sm sm:text-base"
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-bold"
               >
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
                 Convert More
               </button>
-            </div>
-            <div className="mt-4 sm:mt-6 flex items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm flex-wrap">
-              <button className="text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
-                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                </svg>
-                Share
-              </button>
-              <button onClick={resetConverter} className="text-gray-600 hover:text-gray-800 font-medium flex items-center gap-1">
-                <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+              <button
+                onClick={resetConverter}
+                className="flex-1 px-4 py-3 bg-gray-200 text-gray-800 rounded-lg font-bold"
+              >
                 Clear All
               </button>
             </div>
@@ -233,8 +231,7 @@ export default function ConverterUI(props) {
                     onDrop={handleDrop}
                     className="rounded-lg sm:rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50/40 p-8 sm:p-12 text-center cursor-pointer transition-shadow hover:shadow-lg"
                     onClick={() => {
-                      const el = document.getElementById('fileInput');
-                      if (el) el.click();
+                      document.getElementById('fileInput')?.click();
                     }}
                   >
                     <div className="flex flex-col items-center justify-center gap-2 sm:gap-3">
@@ -263,10 +260,7 @@ export default function ConverterUI(props) {
                       {showUploadMenu && (
                         <div className="absolute top-full left-0 mt-2 w-48 sm:w-64 bg-indigo-600 rounded-lg shadow-xl z-50 overflow-hidden">
                           <button
-                            onClick={() => {
-                              const el = document.getElementById('fileInput');
-                              if (el) el.click();
-                            }}
+                            onClick={() => document.getElementById('fileInput')?.click()}
                             className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-white hover:bg-indigo-700 transition-all text-xs sm:text-base"
                           >
                             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -274,32 +268,17 @@ export default function ConverterUI(props) {
                             </svg>
                             From Device
                           </button>
-                          <button
-                            onClick={handleCloudFallback}
-                            className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-white hover:bg-indigo-700 transition-all text-xs sm:text-base"
-                          >
+                          <button onClick={handleCloudFallback} className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-white hover:bg-indigo-700 transition-all text-xs sm:text-base">
                             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"></path>
                             </svg>
                             From Dropbox
                           </button>
-                          <button
-                            onClick={handleCloudFallback}
-                            className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-white hover:bg-indigo-700 transition-all text-xs sm:text-base"
-                          >
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12.545 10.239v3.821h5.445c-.712 2.315-2.647 3.972-5.445 3.972-3.332 0-6.033-2.701-6.033-6.032s2.701-6.032 6.033-6.032c1.498 0 2.866.549 3.921 1.453l2.814-2.814C17.503 2.988 15.139 2 12.545 2 7.021 2 2.543 6.477 2.543 12s4.478 10 10.002 10c8.396 0 10.249-7.85 9.426-11.748l-9.426-.013z"></path>
-                            </svg>
-                            From Google Drive
-                          </button>
-                          <button
-                            onClick={handleAddFromUrl}
-                            className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-white hover:bg-indigo-700 transition-all text-xs sm:text-base"
-                          >
+                          <button onClick={handleAddFromUrl} className="w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 text-white hover:bg-indigo-700 transition-all text-xs sm:text-base">
                             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
                             </svg>
-                            From Url
+                            From URL
                           </button>
                         </div>
                       )}
@@ -316,20 +295,61 @@ export default function ConverterUI(props) {
                   </div>
                   <div className="space-y-2">
                     {files.map((f, idx) => (
-                      <div key={`${f.name}-${idx}`} className={`flex items-center justify-between p-2 rounded ${idx === activeIndex ? 'bg-indigo-50 border-2 border-indigo-200' : 'bg-white'} `}>
+                      <div key={`${f.name}-${idx}`} className="flex items-center justify-between p-2 rounded bg-white">
                         <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                           <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 flex items-center justify-center border-2 border-dashed border-indigo-300 rounded overflow-hidden bg-white">
                             <img src={f.url} alt={f.name} className="w-full h-full object-cover" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="font-medium text-gray-800 text-xs sm:text-sm truncate">{f.name}</p>
-                            {/* ✅ UPDATED: Use formattedSize */}
                             <p className="text-xs text-gray-500">{f.formattedSize}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
-                          <button onClick={() => setActiveIndex(idx)} className="px-2 sm:px-3 py-1 bg-indigo-100 text-indigo-700 rounded text-xs sm:text-sm">Select</button>
-                          <button onClick={() => handleRemoveFile(idx)} className="px-2 sm:px-3 py-1 bg-red-100 text-red-700 rounded text-xs sm:text-sm">Remove</button>
+                          <div className="relative">
+                            <button
+                              onClick={() => openFormatMenu(idx)}
+                              className="px-2 sm:px-3 py-1 bg-indigo-100 text-indigo-700 rounded text-xs sm:text-sm"
+                            >
+                              {f.outputFormat.toUpperCase()}
+                            </button>
+                            {showFormatMenuFor === idx && (
+                              <div
+                                className="absolute top-full left-0 mt-1 w-48 bg-white rounded shadow-lg z-50 border max-h-60 overflow-y-auto"
+                                onMouseLeave={closeFormatMenu}
+                              >
+                                <input
+                                  type="text"
+                                  value={formatSearch}
+                                  onChange={(e) => setFormatSearch(e.target.value)}
+                                  placeholder="Search..."
+                                  className="w-full px-2 py-1 text-sm border-b"
+                                />
+                                <div className="p-1">
+                                  {filteredFormats.map((fmt) => (
+                                    <button
+                                      key={fmt.value}
+                                      onClick={() => {
+                                        setFileOutputFormat(idx, fmt.value);
+                                        closeFormatMenu();
+                                      }}
+                                      className={`block w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 ${
+                                        f.outputFormat === fmt.value ? 'bg-indigo-100 font-medium' : ''
+                                      }`}
+                                    >
+                                      {fmt.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleRemoveFile(idx)}
+                            className="px-2 sm:px-3 py-1 bg-red-100 text-red-700 rounded text-xs sm:text-sm"
+                          >
+                            Remove
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -338,135 +358,11 @@ export default function ConverterUI(props) {
               )}
             </div>
 
-            {/* Output Format */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-              <span className="text-gray-600 font-medium text-sm sm:text-base">Output:</span>
-              <div className="relative flex-1 sm:flex-initial">
-                <button
-                  onClick={() => setShowFormatMenu(!showFormatMenu)}
-                  onMouseEnter={() => setShowFormatMenu(true)}
-                  onMouseLeave={() => {
-                    if (menuCloseTimeout.current) clearTimeout(menuCloseTimeout.current);
-                    menuCloseTimeout.current = setTimeout(() => setShowFormatMenu(false), 200);
-                  }}
-                  className="w-full sm:w-auto flex items-center justify-between gap-2 px-4 sm:px-6 py-2 bg-white border-2 border-indigo-500 text-indigo-700 rounded-lg font-semibold hover:bg-indigo-50 transition-all text-sm sm:text-base"
-                >
-                  {conversionFormat.toUpperCase()}
-                  <svg className={`w-3 h-3 sm:w-4 sm:h-4 transition-transform ${showFormatMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </button>
-                {showFormatMenu && (
-                  <div
-                    onMouseEnter={() => {
-                      if (menuCloseTimeout.current) clearTimeout(menuCloseTimeout.current);
-                      setShowFormatMenu(true);
-                    }}
-                    onMouseLeave={() => setShowFormatMenu(false)}
-                    className="absolute top-full left-0 mt-2 w-full sm:w-64 bg-white rounded-lg shadow-xl z-50 border-2 border-gray-200 max-h-80 overflow-y-auto"
-                  >
-                    <input
-                      type="text"
-                      value={formatSearch}
-                      onChange={(e) => setFormatSearch(e.target.value)}
-                      placeholder="Search Format"
-                      className="w-full px-3 sm:px-4 py-2 border-b-2 border-gray-200 focus:outline-none focus:border-indigo-500 text-sm sm:text-base"
-                    />
-                    <div className="p-2">
-                      <div className="text-xs font-bold text-indigo-600 px-2 py-1 mb-1">Image</div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {filteredFormats.map((format) => (
-                          <button
-                            key={format.value}
-                            onClick={() => {
-                              setConversionFormat(format.value);
-                              setShowFormatMenu(false);
-                              setFormatSearch('');
-                            }}
-                            className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium transition-all ${
-                              conversionFormat === format.value
-                                ? 'bg-indigo-500 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                          >
-                            {format.name}
-                          </button>
-                        ))}
-                      </div>
-                    {/* ==== DOCUMENT FORMATS ==== */}
-<div className="text-xs font-bold text-indigo-600 px-2 py-1 mt-3 mb-1">Document</div>
-<div className="grid grid-cols-3 gap-2">
-  <button onClick={() => { setConversionFormat('pdf'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">PDF</button>
-  <button onClick={() => { setConversionFormat('doc'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">DOC</button>
-  <button onClick={() => { setConversionFormat('txt'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">TXT</button>
-  <button onClick={() => { setConversionFormat('docx'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">DOCX</button>
-  <button onClick={() => { setConversionFormat('word'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">WORD</button>
-</div>
-
-{/* ==== REPORT FORMATS ==== */}
-<div className="text-xs font-bold text-indigo-600 px-2 py-1 mt-3 mb-1">Report</div>
-<div className="grid grid-cols-3 gap-2">
-  <button onClick={() => { setConversionFormat('csv'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">CSV</button>
-  <button onClick={() => { setConversionFormat('xls'); setShowFormatMenu(false); }} className="px-2 sm:px-3 py-1.5 sm:py-2 rounded text-xs sm:text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200">XLS</button>
-</div>
-
-{/* ==== CONVERTED FILE PREVIEW & DOWNLOAD ==== */}
-{convertedFile && (
-  <div className="mt-6 border-t border-gray-200 pt-4 text-center">
-    <div className="text-xs font-bold text-indigo-600 mb-2">Converted File</div>
-    {convertedFile.name.match(/\.(png|jpg|jpeg|gif|webp)$/i) ? (
-      <img
-        src={convertedFile.url}
-        alt="Converted"
-        className="mx-auto rounded shadow-md max-w-full h-auto"
-      />
-    ) : (
-      <div className="p-3 bg-gray-100 rounded text-sm text-gray-700">
-        Converted file: <b>{convertedFile.name}</b>
-      </div>
-    )}
-    <button
-      onClick={handleDownload}
-      className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-    >
-      Download {convertedFile.name.split('.').pop().toUpperCase()} File
-    </button>
-  </div>
-)}
-
-                    </div>
-                  </div>
-                )}
-              </div>
-              <button 
-                onClick={() => setIsSettingsOpen(true)}
-                className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-              </button>
-              <button className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all hidden sm:block">
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                </svg>
-              </button>
-              <button 
-                onClick={resetConverter}
-                className="p-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all sm:ml-auto"
-              >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-
             <button
               onClick={handleConvert}
-              disabled={!selectedFile || isConverting}
+              disabled={files.length === 0 || isConverting}
               className={`w-full py-3 sm:py-4 rounded-lg text-white font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 ${
-                !selectedFile || isConverting
+                files.length === 0 || isConverting
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'
               }`}
@@ -476,11 +372,11 @@ export default function ConverterUI(props) {
                   <svg className="w-5 h-5 sm:w-6 sm:h-6 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                   </svg>
-                  Converting...
+                  Converting ({downloadProgress}%)...
                 </>
               ) : (
                 <>
-                  Convert
+                  Convert All
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                   </svg>
@@ -488,31 +384,9 @@ export default function ConverterUI(props) {
               )}
             </button>
 
-            {selectedFile && !convertedFile && selectedFileMeta && (
-              <div className="mt-6 sm:mt-8 animate-fadeIn">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Preview</h2>
-                <div className="flex justify-center">
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg sm:rounded-xl p-4 sm:p-6 w-full max-w-md shadow-lg">
-                    <div className="text-center text-gray-700 font-bold mb-3 text-base sm:text-lg">Selected Image</div>
-                    <div className="border-2 rounded-lg p-2 bg-white shadow-inner">
-                      <img
-                        src={selectedFileMeta.url}
-                        alt="Preview"
-                        className="w-full h-auto rounded max-h-48 sm:max-h-64 object-contain"
-                      />
-                    </div>
-                    <div className="text-center mt-3 text-xs sm:text-sm text-gray-600 font-medium">
-                      {/* ✅ UPDATED: Use formattedSize */}
-                      {selectedFileMeta.name} ({selectedFileMeta.formattedSize})
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
             <div className="mt-6 sm:mt-8 bg-blue-50 border-l-4 border-blue-500 p-3 sm:p-4 rounded">
               <p className="text-xs sm:text-sm text-gray-700">
-                Convert images directly in your browser with our <span className="font-semibold">Image Converter</span> or <span className="font-semibold">iOS</span> app.
+                Convert images directly in your browser with our <span className="font-semibold">Image Converter</span>.
               </p>
             </div>
           </div>
@@ -725,58 +599,89 @@ export default function ConverterUI(props) {
         </div>
       </main>
 
-      {/* SETTINGS POPUP MODAL */}
+      {/* SETTINGS MODAL */}
       {isSettingsOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-fadeIn">
             <div className="flex items-center justify-between p-4 border-b">
-              <div className="flex items-center gap-2">
-                <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                <h3 className="font-semibold text-lg text-gray-800">Advanced Options (Optional)</h3>
-              </div>
-              <button onClick={() => setIsSettingsOpen(false)} className="text-gray-500 hover:text-gray-700 transition">
+              <h3 className="font-semibold text-lg text-gray-800">Advanced Options</h3>
+              <button onClick={() => setIsSettingsOpen(false)} className="text-gray-500 hover:text-gray-700">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             <div className="p-5 space-y-5">
-              {/* ✅ UPDATED: Use formattedSize */}
-              <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                File Name: {selectedFileMeta?.name || 'N/A'} ({selectedFileMeta?.formattedSize || '0 Bytes'})
-              </div>
               <div className="bg-gray-50 p-4 rounded-xl border">
                 <h4 className="font-semibold mb-3 text-gray-800">Image Options</h4>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Resize Output Image</label>
-                  <select value={settings.resize} onChange={(e) => setSettings(prev => ({ ...prev, resize: e.target.value }))} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                  <select
+                    value={settings.resize}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, resize: e.target.value }))}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  >
                     <option value="keep-original">Keep original size</option>
                     <option value="custom">Custom Size</option>
                     <option value="percent">Percentage</option>
                   </select>
                   {settings.resize === 'custom' && (
                     <div className="mt-2 flex gap-2">
-                      <input type="number" min="1" placeholder="Width" value={settings.width} onChange={(e) => setSettings(prev => ({ ...prev, width: e.target.value }))} className="w-1/2 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
-                      <input type="number" min="1" placeholder="Height" value={settings.height} onChange={(e) => setSettings(prev => ({ ...prev, height: e.target.value }))} className="w-1/2 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder="Width"
+                        value={settings.width}
+                        onChange={(e) => setSettings((prev) => ({ ...prev, width: e.target.value }))}
+                        className="w-1/2 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <input
+                        type="number"
+                        min="1"
+                        placeholder="Height"
+                        value={settings.height}
+                        onChange={(e) => setSettings((prev) => ({ ...prev, height: e.target.value }))}
+                        className="w-1/2 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      />
                     </div>
                   )}
                   {settings.resize === 'percent' && (
-                    <input type="number" min="1" max="200" placeholder="Percent (e.g., 50)" value={settings.width} onChange={(e) => setSettings(prev => ({ ...prev, width: e.target.value }))} className="mt-2 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" />
+                    <input
+                      type="number"
+                      min="1"
+                      max="200"
+                      placeholder="Percent (e.g., 50)"
+                      value={settings.width}
+                      onChange={(e) => setSettings((prev) => ({ ...prev, width: e.target.value }))}
+                      className="mt-2 w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                    />
                   )}
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
                   <div className="flex items-center gap-2">
-                    <input type="text" value={settings.bgColor} onChange={(e) => setSettings(prev => ({ ...prev, bgColor: e.target.value }))} className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="#FFFFFF" />
-                    <input type="color" value={settings.bgColor} onChange={(e) => setSettings(prev => ({ ...prev, bgColor: e.target.value }))} className="w-10 h-10 border border-gray-300 rounded cursor-pointer" />
+                    <input
+                      type="text"
+                      value={settings.bgColor}
+                      onChange={(e) => setSettings((prev) => ({ ...prev, bgColor: e.target.value }))}
+                      className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                      placeholder="#FFFFFF"
+                    />
+                    <input
+                      type="color"
+                      value={settings.bgColor}
+                      onChange={(e) => setSettings((prev) => ({ ...prev, bgColor: e.target.value }))}
+                      className="w-10 h-10 border border-gray-300 rounded cursor-pointer"
+                    />
                   </div>
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Compress Output Image</label>
-                  <select value={settings.compression} onChange={(e) => setSettings(prev => ({ ...prev, compression: e.target.value }))} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                  <select
+                    value={settings.compression}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, compression: e.target.value }))}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                  >
                     <option value="none">No Compression</option>
                     <option value="low">Low Quality</option>
                     <option value="medium">Medium Quality</option>
@@ -784,33 +689,35 @@ export default function ConverterUI(props) {
                   </select>
                 </div>
                 <div className="flex items-start gap-2 mb-2">
-                  <input type="checkbox" id="autoOrient" checked={settings.autoOrient} onChange={(e) => setSettings(prev => ({ ...prev, autoOrient: e.target.checked }))} className="mt-1 w-4 h-4 accent-indigo-600" />
-                  <label htmlFor="autoOrient" className="text-sm text-gray-700">Correctly orient the image using EXIF data.</label>
+                  <input
+                    type="checkbox"
+                    id="autoOrient"
+                    checked={settings.autoOrient}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, autoOrient: e.target.checked }))}
+                    className="mt-1 w-4 h-4 accent-indigo-600"
+                  />
+                  <label htmlFor="autoOrient" className="text-sm text-gray-700">
+                    Correctly orient the image using EXIF data.
+                  </label>
                 </div>
                 <div className="flex items-start gap-2">
-                  <input type="checkbox" id="stripMetadata" checked={settings.stripMetadata} onChange={(e) => setSettings(prev => ({ ...prev, stripMetadata: e.target.checked }))} className="mt-1 w-4 h-4 accent-indigo-600" />
-                  <label htmlFor="stripMetadata" className="text-sm text-gray-700">Strip EXIF, profiles, and comments to reduce file size.</label>
+                  <input
+                    type="checkbox"
+                    id="stripMetadata"
+                    checked={settings.stripMetadata}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, stripMetadata: e.target.checked }))}
+                    className="mt-1 w-4 h-4 accent-indigo-600"
+                  />
+                  <label htmlFor="stripMetadata" className="text-sm text-gray-700">
+                    Strip EXIF, profiles, and comments to reduce file size.
+                  </label>
                 </div>
               </div>
               <div className="flex flex-col gap-3 mt-6">
-                <div className="relative">
-                  <button
-                    onClick={() => setShowDropdown(!showDropdown)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 flex items-center justify-between"
-                  >
-                    Apply to All Files
-                    <svg className={`w-5 h-5 transition-transform ${showDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {showDropdown && (
-                    <div className="absolute w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                      <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Apply from Preset</button>
-                      <button className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Save as Preset</button>
-                    </div>
-                  )}
-                </div>
-                <button onClick={() => setIsSettingsOpen(false)} className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                <button
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
                   Apply Settings
                 </button>
                 <button
@@ -821,8 +728,8 @@ export default function ConverterUI(props) {
                       height: '',
                       bgColor: '#FFFFFF',
                       compression: 'none',
-                      autoOrient: false,
-                      stripMetadata: false,
+                      autoOrient: true,
+                      stripMetadata: true,
                     })
                   }
                   className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
@@ -867,12 +774,12 @@ export default function ConverterUI(props) {
                 </svg>
                 <span className="font-semibold">ImageBot</span>
               </div>
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <button onClick={() => { setChatMessages([{ id: Date.now(), from: 'bot', text: 'Hi! I am ImageBot. Click the cat to start chatting.' }]); }} className="text-sm bg-white/20 px-2 py-1 rounded">Reset</button>
                 <button onClick={() => setShowChat(false)} className="text-white/90 hover:text-white">
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
-              </div>
+              </div> */}
             </div>
             <div className="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-gray-50">
               {chatMessages.map((m) => (
