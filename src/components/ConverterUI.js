@@ -64,9 +64,12 @@ export default function ConverterUI(props) {
     setFormatSearch('');
   };
 
-  const toggleDownloadMenu = (index) => {
-    setShowDownloadMenuFor(showDownloadMenuFor === index ? null : index);
-  };
+ const [showMenu, setShowMenu] = React.useState(false);
+const menuRef = React.useRef(null);
+
+const toggleMenu = () => {
+  setShowMenu(!showMenu);
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 overflow-x-hidden">
@@ -169,30 +172,69 @@ export default function ConverterUI(props) {
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                      <button
-                        onClick={() => toggleDownloadMenu(idx)}
-                        className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium"
-                      >
-                        Download {cf.name.split('.').pop().toUpperCase()}
-                      </button>
-                      {showDownloadMenuFor === idx && (
-                        <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-lg z-10 border">
-                          <button
-                            onClick={() => {
-                              handleDownload(cf);
-                              toggleDownloadMenu(idx);
-                            }}
-                            className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                          >
-                            Save to Device
-                          </button>
-                          <button className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-500 cursor-not-allowed">
-                            Save to Cloud (Coming Soon)
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    <div className="relative flex-1" ref={menuRef}>
+      {/* Main button */}
+      <button
+        onClick={toggleMenu}
+        className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:opacity-90 transition"
+      >
+        Download {cf.name.split(".").pop().toUpperCase()}
+      </button>
+
+      {/* Dropdown menu */}
+      {showMenu && (
+       <div className="flex flex-col sm:flex-row gap-3">
+  <div className="relative flex-1" ref={menuRef}>
+    {/* Main button */}
+    {/* <button
+      onClick={toggleMenu}
+      className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:opacity-90 transition"
+    >
+      Download {cf.name.split(".").pop().toUpperCase()}
+    </button> */}
+
+    {/* Dropdown menu */}
+    {showMenu && (
+      <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-lg shadow-lg z-20 border animate-fadeIn">
+        <button
+          onClick={() => {
+            handleDownload(cf);
+            setShowMenu(false);
+          }}
+          className="block w-full px-4 py-2 text-left hover:bg-gray-100 transition"
+        >
+          💾 Save to Device
+        </button>
+        <button
+          disabled
+          className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed"
+        >
+          ☁️ Save to Google Drive
+        </button>
+        <button
+          disabled
+          className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed"
+        >
+          📦 Save to Dropbox
+        </button>
+        <button
+          disabled
+          className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed"
+        >
+          🧩 Save to OneDrive
+        </button>
+        <button
+          disabled
+          className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed"
+        >
+          🔗 Generate QR Code
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+      )}
+    </div>
                   </div>
                 </div>
               ))}
