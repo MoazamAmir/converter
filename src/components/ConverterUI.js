@@ -46,6 +46,9 @@ export default function ConverterUI(props) {
 
   const [headerHovered, setHeaderHovered] = React.useState(false);
   const [showDownloadMenuFor, setShowDownloadMenuFor] = React.useState(null);
+  const [showMenu, setShowMenu] = React.useState(false);
+  const menuRef = React.useRef(null);
+
   const menuCloseTimeout = React.useRef(null);
 
   React.useEffect(() => {
@@ -64,12 +67,32 @@ export default function ConverterUI(props) {
     setFormatSearch('');
   };
 
- const [showMenu, setShowMenu] = React.useState(false);
-const menuRef = React.useRef(null);
+  const toggleMenu = () => {
+    setShowMenu(!showMenu);
+  };
 
-const toggleMenu = () => {
-  setShowMenu(!showMenu);
-};
+  // ✅ Helper for dynamic tool gradient
+  const getToolBgClass = (color) => {
+    const map = {
+      blue: 'from-blue-500 to-indigo-600',
+      green: 'from-green-500 to-emerald-600',
+      purple: 'from-purple-500 to-violet-600',
+      pink: 'from-pink-500 to-rose-600',
+      indigo: 'from-indigo-500 to-purple-600',
+      orange: 'from-orange-500 to-red-500'
+    };
+    return map[color] || 'from-gray-500 to-gray-600';
+  };
+
+  // ✅ Valuable Tools Data with URLs
+  const valuableTools = [
+    { name: 'Image Resizer', desc: 'Quick and easy way to resize an image to any size', color: 'blue', url: '/tools/image-resizer' },
+    { name: 'Crop Image', desc: 'Use this tool to crop unwanted areas from your image', color: 'green', url: '/tools/crop-image' },
+    { name: 'Image Compressor', desc: 'Reduce image files size by up to 80 to 90% using this tool', color: 'purple', url: '/tools/image-compressor' },
+    { name: 'Color Picker', desc: 'Quickly pick a color from the color wheel or from your image online', color: 'pink', url: '/tools/color-picker' },
+    { name: 'Image Enlarger', desc: 'A fast way to make your images bigger', color: 'indigo', url: '/tools/image-enlarger' },
+    { name: 'Collage Maker', desc: 'Create a beautiful photo collage from your photos', color: 'orange', url: '/tools/collage-maker' }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 overflow-x-hidden">
@@ -147,7 +170,6 @@ const toggleMenu = () => {
               </h2>
               <p className="text-sm sm:text-base text-gray-600">Your images have been successfully converted</p>
             </div>
-
             <div className="space-y-6">
               {convertedFiles.map((cf, idx) => (
                 <div key={cf.name} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-lg">
@@ -170,76 +192,44 @@ const toggleMenu = () => {
                       </p>
                     </div>
                   </div>
-
                   <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1" ref={menuRef}>
-      {/* Main button */}
-      <button
-        onClick={toggleMenu}
-        className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:opacity-90 transition"
-      >
-        Download {cf.name.split(".").pop().toUpperCase()}
-      </button>
-
-      {/* Dropdown menu */}
-      {showMenu && (
-       <div className="flex flex-col sm:flex-row gap-3">
-  <div className="relative flex-1" ref={menuRef}>
-    {/* Main button */}
-    {/* <button
-      onClick={toggleMenu}
-      className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:opacity-90 transition"
-    >
-      Download {cf.name.split(".").pop().toUpperCase()}
-    </button> */}
-
-    {/* Dropdown menu */}
-    {showMenu && (
-      <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-lg shadow-lg z-20 border animate-fadeIn">
-        <button
-          onClick={() => {
-            handleDownload(cf);
-            setShowMenu(false);
-          }}
-          className="block w-full px-4 py-2 text-left hover:bg-gray-100 transition"
-        >
-          💾 Save to Device
-        </button>
-        <button
-          disabled
-          className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed"
-        >
-          ☁️ Save to Google Drive
-        </button>
-        <button
-          disabled
-          className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed"
-        >
-          📦 Save to Dropbox
-        </button>
-        <button
-          disabled
-          className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed"
-        >
-          🧩 Save to OneDrive
-        </button>
-        <button
-          disabled
-          className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed"
-        >
-          🔗 Generate QR Code
-        </button>
-      </div>
-    )}
-  </div>
-</div>
-      )}
-    </div>
+                      <button
+                        onClick={toggleMenu}
+                        className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:opacity-90 transition"
+                      >
+                        Download {cf.name.split(".").pop().toUpperCase()}
+                      </button>
+                      {showMenu && (
+                        <div className="absolute top-full left-0 mt-2 w-full bg-white rounded-lg shadow-lg z-20 border animate-fadeIn">
+                          <button
+                            onClick={() => {
+                              handleDownload(cf);
+                              setShowMenu(false);
+                            }}
+                            className="block w-full px-4 py-2 text-left hover:bg-gray-100 transition"
+                          >
+                            💾 Save to Device
+                          </button>
+                          <button disabled className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed">
+                            ☁️ Save to Google Drive
+                          </button>
+                          <button disabled className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed">
+                            📦 Save to Dropbox
+                          </button>
+                          <button disabled className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed">
+                            🧩 Save to OneDrive
+                          </button>
+                          <button disabled className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-400 cursor-not-allowed">
+                            🔗 Generate QR Code
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
-
             <div className="mt-6 flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleConvertMore}
@@ -328,7 +318,6 @@ const toggleMenu = () => {
                   </div>
                 )}
               </div>
-
               {files.length > 0 && (
                 <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4">
                   <div className="flex items-center justify-between mb-3">
@@ -375,9 +364,7 @@ const toggleMenu = () => {
                                         setFileOutputFormat(idx, fmt.value);
                                         closeFormatMenu();
                                       }}
-                                      className={`block w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 ${
-                                        f.outputFormat === fmt.value ? 'bg-indigo-100 font-medium' : ''
-                                      }`}
+                                      className={`block w-full text-left px-2 py-1 text-sm rounded hover:bg-gray-100 ${f.outputFormat === fmt.value ? 'bg-indigo-100 font-medium' : ''}`}
                                     >
                                       {fmt.name}
                                     </button>
@@ -399,14 +386,11 @@ const toggleMenu = () => {
                 </div>
               )}
             </div>
-
             <button
               onClick={handleConvert}
               disabled={files.length === 0 || isConverting}
               className={`w-full py-3 sm:py-4 rounded-lg text-white font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 ${
-                files.length === 0 || isConverting
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'
+                files.length === 0 || isConverting ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'
               }`}
             >
               {isConverting ? (
@@ -425,7 +409,6 @@ const toggleMenu = () => {
                 </>
               )}
             </button>
-
             <div className="mt-6 sm:mt-8 bg-blue-50 border-l-4 border-blue-500 p-3 sm:p-4 rounded">
               <p className="text-xs sm:text-sm text-gray-700">
                 Convert images directly in your browser with our <span className="font-semibold">Image Converter</span>.
@@ -435,7 +418,7 @@ const toggleMenu = () => {
         )}
 
         {/* How to Convert Section */}
-        <div className="mt-8 sm:mt-12 bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 animate-fadeIn" style={{animationDelay: '0.4s', opacity: 0}}>
+        <div className="mt-8 sm:mt-12 bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 animate-fadeIn" style={{ animationDelay: '0.4s', opacity: 0 }}>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
             <span className="text-2xl sm:text-3xl">❓</span>
             How to Convert Images?
@@ -462,9 +445,9 @@ const toggleMenu = () => {
           </div>
         </div>
 
-        {/* Valuable Image Tools Section */}
-        <div className="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 animate-fadeIn" style={{animationDelay: '0.5s', opacity: 0}}>
-          <button 
+        {/* ✅ UPDATED: Valuable Image Tools Section */}
+        <div className="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 animate-fadeIn" style={{ animationDelay: '0.5s', opacity: 0 }}>
+          <button
             className="w-full flex items-center justify-between text-left group"
             onClick={() => setIsToolsOpen(!isToolsOpen)}
           >
@@ -472,16 +455,16 @@ const toggleMenu = () => {
               <span className="text-2xl sm:text-3xl">🛠️</span>
               Valuable Image Tools
             </h2>
-            <svg 
+            <svg
               className={`w-5 h-5 sm:w-6 sm:h-6 text-gray-600 transition-transform duration-300 ${isToolsOpen ? 'rotate-180' : ''}`}
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
             </svg>
           </button>
-          <div 
+          <div
             className="transition-all duration-500 ease-in-out overflow-hidden"
             style={{
               maxHeight: isToolsOpen ? '1000px' : '0',
@@ -490,23 +473,19 @@ const toggleMenu = () => {
           >
             <p className="text-gray-600 mt-4 mb-4 sm:mb-6 text-sm sm:text-base">Here is a list of image tools to further edit your images.</p>
             <div className="space-y-2 sm:space-y-3">
-              {[
-                { name: 'Image Resizer', desc: 'Quick and easy way to resize an image to any size', color: 'blue' },
-                { name: 'Crop Image', desc: 'Use this tool to crop unwanted areas from your image', color: 'green' },
-                { name: 'Image Compressor', desc: 'Reduce image files size by up to 80 to 90% using this tool', color: 'purple' },
-                { name: 'Color Picker', desc: 'Quickly pick a color from the color wheel or from your image online', color: 'pink' },
-                { name: 'Image Enlarger', desc: 'A fast way to make your images bigger', color: 'indigo' },
-                { name: 'Collage Maker', desc: 'Create a beautiful photo collage from your photos', color: 'orange' }
-              ].map((tool, index) => (
-                <div 
+              {valuableTools.map((tool, index) => (
+                <div
                   key={tool.name}
                   className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-300 hover-lift group"
                 >
-                  <span className="flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm">
+                  <span className={`flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 text-white rounded-full flex items-center justify-center font-bold text-xs sm:text-sm bg-gradient-to-br ${getToolBgClass(tool.color)}`}>
                     {index + 1}
                   </span>
                   <div className="text-sm sm:text-base">
-                    <a href="#" className="font-bold text-indigo-600 hover:text-indigo-800 group-hover:underline">
+                    <a
+                      href={tool.url}
+                      className="font-bold text-indigo-600 hover:text-indigo-800 group-hover:underline"
+                    >
                       {tool.name}
                     </a>
                     <span className="text-gray-600"> - {tool.desc}</span>
@@ -518,8 +497,8 @@ const toggleMenu = () => {
         </div>
 
         {/* Specific Image Converters Section */}
-        <div 
-          className="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 animate-fadeIn" 
+        <div
+          className="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 animate-fadeIn"
           style={{ animationDelay: '0.5s', opacity: 0 }}
         >
           <button
@@ -552,12 +531,12 @@ const toggleMenu = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6">
               <div className="space-y-2 sm:space-y-3">
                 {[
-                  'DJV Converter','ART Converter','DDS Converter','PCX Converter','EMZ Converter',
-                  'DJVU Converter','JXL Converter','JFIF Converter','X3F Converter','NEF Converter'
+                  'DJV Converter', 'ART Converter', 'DDS Converter', 'PCX Converter', 'EMZ Converter',
+                  'DJVU Converter', 'JXL Converter', 'JFIF Converter', 'X3F Converter', 'NEF Converter'
                 ].map(name => (
-                  <a 
-                    key={name} 
-                    href="#" 
+                  <a
+                    key={name}
+                    href="#"
                     className="block p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 text-indigo-600 hover:text-indigo-800 font-medium text-xs sm:text-sm transition-all duration-300 group hover-lift"
                   >
                     {name}
@@ -566,12 +545,12 @@ const toggleMenu = () => {
               </div>
               <div className="space-y-2 sm:space-y-3">
                 {[
-                  'EPS Converter','DPX Converter','HEIC Converter','TIF Converter','TGA Converter',
-                  'CBZ Converter','ICO Converter','PSB Converter','Panasonic RAW Converter','RWL Converter'
+                  'EPS Converter', 'DPX Converter', 'HEIC Converter', 'TIF Converter', 'TGA Converter',
+                  'CBZ Converter', 'ICO Converter', 'PSB Converter', 'Panasonic RAW Converter', 'RWL Converter'
                 ].map(name => (
-                  <a 
-                    key={name} 
-                    href="#" 
+                  <a
+                    key={name}
+                    href="#"
                     className="block p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 text-indigo-600 hover:text-indigo-800 font-medium text-xs sm:text-sm transition-all duration-300 group hover-lift"
                   >
                     {name}
@@ -580,12 +559,12 @@ const toggleMenu = () => {
               </div>
               <div className="space-y-2 sm:space-y-3">
                 {[
-                  'PPM Converter','WMZ Converter','AVIF Converter','JPEG Converter','DIB Converter',
-                  'HEIF Converter','CBR Converter','ARW Converter','NRW Converter','Sigma RAW Converter'
+                  'PPM Converter', 'WMZ Converter', 'AVIF Converter', 'JPEG Converter', 'DIB Converter',
+                  'HEIF Converter', 'CBR Converter', 'ARW Converter', 'NRW Converter', 'Sigma RAW Converter'
                 ].map(name => (
-                  <a 
-                    key={name} 
-                    href="#" 
+                  <a
+                    key={name}
+                    href="#"
                     className="block p-2 sm:p-3 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 text-indigo-600 hover:text-indigo-800 font-medium text-xs sm:text-sm transition-all duration-300 group hover-lift"
                   >
                     {name}
@@ -600,34 +579,28 @@ const toggleMenu = () => {
         <div className="mt-8 sm:mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           {[
             {
-              icon: (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-              ),
+              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>,
               title: 'Fast Conversion',
               desc: 'Convert images in seconds with optimized processing',
               color: 'blue'
             },
             {
-              icon: (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-              ),
+              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>,
               title: 'Secure',
               desc: 'Your images are processed locally in your browser',
               color: 'green'
             },
             {
-              icon: (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-              ),
+              icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>,
               title: 'High Quality',
               desc: 'Maintain image quality during format conversion',
               color: 'purple'
             }
           ].map((feature, index) => (
-            <div 
+            <div
               key={feature.title}
               className="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 text-center hover-lift animate-fadeIn"
-              style={{animationDelay: `${0.3 + index * 0.1}s`, opacity: 0}}
+              style={{ animationDelay: `${0.3 + index * 0.1}s`, opacity: 0 }}
             >
               <div className={`w-12 h-12 sm:w-14 sm:h-14 bg-${feature.color}-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4`}>
                 <svg className={`w-6 h-6 sm:w-7 sm:h-7 text-${feature.color}-600`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -816,12 +789,6 @@ const toggleMenu = () => {
                 </svg>
                 <span className="font-semibold">ImageBot</span>
               </div>
-              {/* <div className="flex items-center gap-2">
-                <button onClick={() => { setChatMessages([{ id: Date.now(), from: 'bot', text: 'Hi! I am ImageBot. Click the cat to start chatting.' }]); }} className="text-sm bg-white/20 px-2 py-1 rounded">Reset</button>
-                <button onClick={() => setShowChat(false)} className="text-white/90 hover:text-white">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-              </div> */}
             </div>
             <div className="p-3 flex-1 overflow-y-auto max-h-64 space-y-2 bg-gray-50">
               {chatMessages.map((m) => (
