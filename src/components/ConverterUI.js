@@ -84,7 +84,7 @@ export default function ConverterUI(props) {
     return map[color] || 'from-gray-500 to-gray-600';
   };
 
-  // ✅ Valuable Tools Data with URLs
+  // Valuable Tools Data with URLs
   const valuableTools = [
     { name: 'Image Resizer', desc: 'Quick and easy way to resize an image to any size', color: 'blue', url: '/tools/image-resizer' },
     { name: 'Crop Image', desc: 'Use this tool to crop unwanted areas from your image', color: 'green', url: '/tools/crop-image' },
@@ -119,22 +119,55 @@ export default function ConverterUI(props) {
         onMouseLeave={() => setHeaderHovered(false)}
         className={`glass-effect shadow-sm sticky top-0 z-50 border-b border-gray-200 transition-all ${headerHovered ? 'backdrop-blur-md bg-white/95' : ''}`}
       >
-        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-0">
+
+          {/* Left: Logo and title */}
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
               <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
               </svg>
             </div>
-            <div className="leading-none">
-              <div className="text-sm sm:text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Image Converter Pro</div>
+            <div className="leading-none text-center sm:text-left">
+              <div className="text-sm sm:text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Image Converter Pro
+              </div>
               <div className="text-xs text-gray-500 hidden sm:block">Convert images instantly</div>
             </div>
           </div>
+
+          {/* Center: Animated clickable feature list */}
+          <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 text-[10px] sm:text-sm font-medium">
+            {[
+              'Image Resizer',
+              'Crop Image',
+              'Image Compressor',
+              'Color Picker',
+              'Image Enlarger',
+              'Collage Maker'
+            ].map((feature, index) => (
+              <button
+                key={index}
+                onClick={() => alert(`${feature} clicked!`)} // Replace alert with navigation or logic
+                className="relative text-gray-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300 cursor-pointer transform hover:scale-105"
+              >
+                {feature}
+              </button>
+            ))}
+          </div>
+
+          {/* Right: Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <button className="hidden sm:block px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-indigo-600 text-indigo-600 rounded hover:bg-indigo-50">Log In</button>
-            <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700">Sign Up</button>
-            <button onClick={() => props.setShowDropdown?.(prev => !prev)} className="md:hidden ml-1 sm:ml-2 p-1.5 sm:p-2 rounded-lg border border-gray-200">
+            <button className="hidden sm:block px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-indigo-600 text-indigo-600 rounded hover:bg-indigo-50 transition-all duration-200">
+              Log In
+            </button>
+            <button className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-all duration-200">
+              Sign Up
+            </button>
+            <button
+              onClick={() => props.setShowDropdown?.(prev => !prev)}
+              className="md:hidden ml-1 sm:ml-2 p-1.5 sm:p-2 rounded-lg border border-gray-200"
+            >
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
               </svg>
@@ -142,6 +175,7 @@ export default function ConverterUI(props) {
           </div>
         </div>
       </header>
+
 
       {/* Hero Header */}
       <header className="glass-effect shadow-lg sticky top-0 z-50 border-b-4 border-indigo-500">
@@ -154,9 +188,18 @@ export default function ConverterUI(props) {
           <p className="text-center text-gray-600 mt-2 text-sm sm:text-base md:text-lg px-2">Convert images to JPG, PNG, WebP and more formats instantly</p>
         </div>
       </header>
+      <div className="text-center mt-5">
+        <div className="bg-blue-100 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[80px] mx-auto w-[300px] sm:w-[400px] md:w-[700px] shadow-md">
+          <p className="text-blue-800 text-sm sm:text-base font-semibold">Ad Space 728x90</p>
+          <p className="text-blue-600 text-xs sm:text-sm mt-1">Leaderboard Banner Ad Here</p>
+        </div>
+      </div>
+
+
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-4xl">
         {/* CONVERSION RESULTS SCREEN */}
+
         {showResults && convertedFiles.length > 0 ? (
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-8 hover-lift border-t-4 border-green-500 animate-slideIn">
             <div className="text-center mb-6 sm:mb-8">
@@ -389,9 +432,8 @@ export default function ConverterUI(props) {
             <button
               onClick={handleConvert}
               disabled={files.length === 0 || isConverting}
-              className={`w-full py-3 sm:py-4 rounded-lg text-white font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 ${
-                files.length === 0 || isConverting ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'
-              }`}
+              className={`w-full py-3 sm:py-4 rounded-lg text-white font-bold text-base sm:text-lg transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 ${files.length === 0 || isConverting ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg'
+                }`}
             >
               {isConverting ? (
                 <>
@@ -417,6 +459,29 @@ export default function ConverterUI(props) {
           </div>
         )}
 
+        {/*Left Vertical Ad (Top Spaced) */}
+        <div className="hidden lg:block absolute left-4 top-[320px]">
+          <div className="bg-blue-100 rounded-lg p-4 flex flex-col items-center justify-center w-[120px] h-[500px] shadow-md">
+            {/* <p className="text-blue-800 text-sm font-semibold rotate-90 whitespace-nowrap">
+      Ad Space 120x300
+    </p> */}
+            <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">
+              Left Skyscraper Banner
+            </p>
+          </div>
+        </div>
+
+        {/*Right Vertical Ad (Top Spaced) */}
+        <div className="hidden lg:block absolute right-4 top-[320px]">
+          <div className="bg-blue-100 rounded-lg p-4 flex flex-col items-center justify-center w-[120px] h-[500px] shadow-md">
+            {/* <p className="text-blue-800 text-sm font-semibold rotate-90 whitespace-nowrap">
+      Ad Space 120x300
+    </p> */}
+            <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">
+              Right Skyscraper Banner
+            </p>
+          </div>
+        </div>
         {/* How to Convert Section */}
         <div className="mt-8 sm:mt-12 bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 animate-fadeIn" style={{ animationDelay: '0.4s', opacity: 0 }}>
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
@@ -445,7 +510,7 @@ export default function ConverterUI(props) {
           </div>
         </div>
 
-        {/* ✅ UPDATED: Valuable Image Tools Section */}
+        {/*UPDATED: Valuable Image Tools Section */}
         <div className="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 animate-fadeIn" style={{ animationDelay: '0.5s', opacity: 0 }}>
           <button
             className="w-full flex items-center justify-between text-left group"
