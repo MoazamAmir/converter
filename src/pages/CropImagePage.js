@@ -32,8 +32,8 @@ export default function CropImagePage() {
     if (aspectRatio !== 'FreeForm' && aspectRatio !== 'Custom') {
       const ratios = {
         '1:1 Square': 1,
-        '4:3': 4/3,
-        '16:9': 16/9
+        '4:3': 4 / 3,
+        '16:9': 16 / 9
       };
       const ratio = ratios[aspectRatio];
       if (ratio) {
@@ -144,7 +144,7 @@ export default function CropImagePage() {
       if (isDragging) {
         const newX = Math.max(0, Math.min(dragStart.cropX + deltaX, imageDimensions.width - cropSettings.width));
         const newY = Math.max(0, Math.min(dragStart.cropY + deltaY, imageDimensions.height - cropSettings.height));
-        
+
         setCropSettings(prev => ({
           ...prev,
           positionX: Math.round(newX),
@@ -174,8 +174,8 @@ export default function CropImagePage() {
         if (aspectRatio !== 'FreeForm' && aspectRatio !== 'Custom') {
           const ratios = {
             '1:1 Square': 1,
-            '4:3': 4/3,
-            '16:9': 16/9
+            '4:3': 4 / 3,
+            '16:9': 16 / 9
           };
           const ratio = ratios[aspectRatio];
           if (ratio) {
@@ -243,13 +243,20 @@ export default function CropImagePage() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="max-w-7xl mx-auto px-6 py-5">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-white mb-3">Crop Image</h1>
             <p className="text-gray-400 text-lg">Quickly crop image files online for free!</p>
           </div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="text-center mt-5">
+            <div className="bg-blue-100 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[80px] mx-auto w-[300px] sm:w-[400px] md:w-[700px] shadow-md">
+              <p className="text-blue-800 text-sm sm:text-base font-semibold">Ad Space 728x90</p>
+              <p className="text-blue-600 text-xs sm:text-sm mt-1">Leaderboard Banner Ad Here</p>
+            </div>
+          </div>
+
+          <div className="max-w-4xl mx-auto mt-10">
             <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-1 rounded-lg mb-6">
               <div className="bg-[#4a6cf7] rounded-lg p-12 text-center">
                 <div className="border-4 border-dashed border-white/30 rounded-lg p-16">
@@ -274,6 +281,27 @@ export default function CropImagePage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div className="hidden lg:block absolute left-4 top-[390px]">
+          <div className="bg-blue-100 rounded-lg p-4 flex flex-col items-center justify-center w-[120px] h-[500px] shadow-md">
+            {/* <p className="text-blue-800 text-sm font-semibold rotate-90 whitespace-nowrap">
+      Ad Space 120x300
+    </p> */}
+            <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">
+              Left Skyscraper Banner
+            </p>
+          </div>
+        </div>
+
+        <div className="hidden lg:block absolute right-4 top-[390px]">
+          <div className="bg-blue-100 rounded-lg p-4 flex flex-col items-center justify-center w-[120px] h-[500px] shadow-md">
+            {/* <p className="text-blue-800 text-sm font-semibold rotate-90 whitespace-nowrap">
+      Ad Space 120x300
+    </p> */}
+            <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">
+              Right Skyscraper Banner
+            </p>
           </div>
         </div>
       </div>
@@ -314,7 +342,7 @@ export default function CropImagePage() {
           <div className="mb-6">
             <h2 className="text-white font-bold text-xl mb-1">Crop Rectangle</h2>
           </div>
-          
+
           <div className="mb-6">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
@@ -324,7 +352,7 @@ export default function CropImagePage() {
                   value={cropSettings.width}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 0;
-                    setCropSettings({...cropSettings, width: Math.min(val, imageDimensions.width)});
+                    setCropSettings({ ...cropSettings, width: Math.min(val, imageDimensions.width) });
                   }}
                   className="w-full px-3 py-2.5 bg-[#2a2a2a] text-white rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
                 />
@@ -336,7 +364,7 @@ export default function CropImagePage() {
                   value={cropSettings.height}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 0;
-                    setCropSettings({...cropSettings, height: Math.min(val, imageDimensions.height)});
+                    setCropSettings({ ...cropSettings, height: Math.min(val, imageDimensions.height) });
                   }}
                   className="w-full px-3 py-2.5 bg-[#2a2a2a] text-white rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
                 />
@@ -369,7 +397,7 @@ export default function CropImagePage() {
                   value={cropSettings.positionX}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 0;
-                    setCropSettings({...cropSettings, positionX: Math.max(0, Math.min(val, imageDimensions.width - cropSettings.width))});
+                    setCropSettings({ ...cropSettings, positionX: Math.max(0, Math.min(val, imageDimensions.width - cropSettings.width)) });
                   }}
                   className="w-full px-3 py-2.5 bg-[#2a2a2a] text-white rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
                 />
@@ -381,7 +409,7 @@ export default function CropImagePage() {
                   value={cropSettings.positionY}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 0;
-                    setCropSettings({...cropSettings, positionY: Math.max(0, Math.min(val, imageDimensions.height - cropSettings.height))});
+                    setCropSettings({ ...cropSettings, positionY: Math.max(0, Math.min(val, imageDimensions.height - cropSettings.height)) });
                   }}
                   className="w-full px-3 py-2.5 bg-[#2a2a2a] text-white rounded border border-gray-700 focus:border-blue-500 focus:outline-none"
                 />
@@ -410,7 +438,8 @@ export default function CropImagePage() {
         </div>
 
         <div className="flex-1 bg-[#1a1a1a] p-8 overflow-auto flex items-center justify-center">
-          <div 
+          
+          <div
             ref={containerRef}
             className="relative inline-block"
             style={{ userSelect: 'none' }}
@@ -422,7 +451,7 @@ export default function CropImagePage() {
               className="max-w-full max-h-[calc(100vh-200px)] block"
               draggable={false}
             />
-            
+
             {imageRef.current && (
               <div
                 className="absolute border-2 border-blue-500 cursor-move"
@@ -456,7 +485,7 @@ export default function CropImagePage() {
                   style={{ right: '-6px', bottom: '-6px' }}
                   onMouseDown={(e) => { e.stopPropagation(); handleMouseDown(e, 'se'); }}
                 />
-                
+
                 {/* Edge handles */}
                 <div
                   className="absolute w-3 h-3 bg-blue-500 border border-white cursor-n-resize"
@@ -481,8 +510,11 @@ export default function CropImagePage() {
               </div>
             )}
           </div>
+
         </div>
+
       </div>
+
     </div>
   );
 }
