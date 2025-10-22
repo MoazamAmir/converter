@@ -137,25 +137,17 @@ export default function ConverterUI(props) {
           </div>
 
           {/* Center: Animated clickable feature list */}
-          <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3 text-[10px] sm:text-sm font-medium">
-            {[
-              'Image Resizer',
-              'Crop Image',
-              'Image Compressor',
-              'Color Picker',
-              'Image Enlarger',
-              'Collage Maker'
-            ].map((feature, index) => (
-              <button
+          <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-8 text-[10px] sm:text-sm font-medium">
+            {valuableTools.map((tool, index) => (
+              <a
                 key={index}
-                onClick={() => alert(`${feature} clicked!`)} // Replace alert with navigation or logic
+                href={tool.url}
                 className="relative text-gray-600 hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300 cursor-pointer transform hover:scale-105"
               >
-                {feature}
-              </button>
+                {tool.name}
+              </a>
             ))}
           </div>
-
           {/* Right: Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
             <button className="hidden sm:block px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-indigo-600 text-indigo-600 rounded hover:bg-indigo-50 transition-all duration-200">
