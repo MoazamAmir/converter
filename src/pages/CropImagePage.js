@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Shield, Scissors, Ruler, Image, Globe, Heart } from "lucide-react";
+import { Shield, Scissors, Ruler, Image as ImageIcon, Globe, Heart } from "lucide-react";
 
 export default function CropImagePage() {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -79,7 +79,7 @@ export default function CropImagePage() {
     canvas.width = cropSettings.width;
     canvas.height = cropSettings.height;
 
-    const img = new Image();
+    const img = new Image(); // ✅ Now correctly uses window.Image
     img.crossOrigin = 'anonymous';
     img.onload = () => {
       ctx.drawImage(
@@ -220,7 +220,7 @@ export default function CropImagePage() {
       description: "Crop your image to an exact pixel size to share them without leaving out parts or distorting them.",
     },
     {
-      icon: <Image className="w-10 h-10 text-white mb-4" />,
+      icon: <ImageIcon className="w-10 h-10 text-white mb-4" />,
       title: "Crop to Any Aspect Ratio",
       description: "Choose from many different crop aspect ratios to get the best composition for your photo.",
     },
@@ -250,14 +250,6 @@ export default function CropImagePage() {
               <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded"></div>
               <span className="text-white text-xl font-semibold">ImageResizer</span>
             </div>
-            {/* <nav className="hidden md:flex items-center gap-6 text-sm">
-              <button className="text-gray-300 hover:text-white">Resize ▼</button>
-              <button className="text-gray-300 hover:text-white">Crop ▼</button>
-              <button className="text-gray-300 hover:text-white">Compress ▼</button>
-              <button className="text-gray-300 hover:text-white">Convert ▼</button>
-              <button className="text-gray-300 hover:text-white">More ▼</button>
-              <button className="text-gray-300 hover:text-white">Pricing</button>
-            </nav> */}
             <div className="flex items-center gap-3">
               <button className="px-4 py-2 text-white border border-gray-600 rounded hover:bg-gray-800">Login</button>
               <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Signup</button>
@@ -377,13 +369,11 @@ export default function CropImagePage() {
           </div>
         </div>
 
-        {/* Feature Cards Section - New Addition */}
         <div className="max-w-6xl mx-auto mt-20 px-6 pb-16">
           <h2 className="text-3xl font-bold text-white text-center mb-12">
             Crop Images Free with Our Online Photo Cropper
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Card 1 - Customizable Cropping */}
             <div className="bg-[#2a2a2a] border border-gray-700 rounded-xl p-8 hover:border-gray-600 transition-colors">
               <div className="flex flex-col items-center text-center">
                 <Globe className="w-12 h-12 text-blue-400 mb-4" />
@@ -394,7 +384,6 @@ export default function CropImagePage() {
               </div>
             </div>
 
-            {/* Card 2 - Secure and Reliable */}
             <div className="bg-[#2a2a2a] border border-gray-700 rounded-xl p-8 hover:border-gray-600 transition-colors">
               <div className="flex flex-col items-center text-center">
                 <Shield className="w-12 h-12 text-blue-400 mb-4" />
@@ -405,7 +394,6 @@ export default function CropImagePage() {
               </div>
             </div>
 
-            {/* Card 3 - Precise Cropping */}
             <div className="bg-[#2a2a2a] border border-gray-700 rounded-xl p-8 hover:border-gray-600 transition-colors">
               <div className="flex flex-col items-center text-center">
                 <Ruler className="w-12 h-12 text-blue-400 mb-4" />
@@ -416,10 +404,9 @@ export default function CropImagePage() {
               </div>
             </div>
 
-            {/* Card 4 - Versatile Format Support */}
             <div className="bg-[#2a2a2a] border border-gray-700 rounded-xl p-8 hover:border-gray-600 transition-colors">
               <div className="flex flex-col items-center text-center">
-                <Image className="w-12 h-12 text-blue-400 mb-4" />
+                <ImageIcon className="w-12 h-12 text-blue-400 mb-4" />
                 <h3 className="text-xl font-bold text-white mb-3">Versatile Format Support</h3>
                 <p className="text-gray-400 leading-relaxed">
                   Our image cropper handles various file types, ensuring you can work with nearly any image you have. Whether it's a JPG, PNG, JPEG, or WEBP, our tool provides seamless support so you can crop and adjust your photos without worrying about compatibility.
@@ -429,7 +416,6 @@ export default function CropImagePage() {
           </div>
         </div>
 
-        {/* Interactive Cropping Interface Section */}
         <div className="max-w-6xl mx-auto mt-40 flex flex-col md:flex-row items-center gap-10 px-6">
           <div className="flex-1 flex justify-center">
             <img
@@ -465,25 +451,23 @@ export default function CropImagePage() {
             />
           </div>
         </div>
-         {/* Footer */}
-      <footer className="glass-effect mt-16 py-8 border-t-2 border-gray-200">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-              </svg>
+
+        <footer className="glass-effect mt-16 py-8 border-t-2 border-gray-200">
+          <div className="container mx-auto px-4 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <span className="font-bold text-white">Image Converter Pro</span>
             </div>
-            <span className="font-bold text-white">Image Converter Pro</span>
+            <p className="text-white">© {new Date().getFullYear()} All rights reserved.</p>
           </div>
-          <p className="text-white">© {new Date().getFullYear()} All rights reserved.</p>
-        </div>
-      </footer>
+        </footer>
       </div>
     );
   }
-
-  const scale = imageRef.current ? imageRef.current.width / imageRef.current.naturalWidth : 1;
 
   return (
     <div className="min-h-screen bg-[#1a1a1a]">
@@ -715,7 +699,6 @@ export default function CropImagePage() {
           </div>
         </div>
       </div>
-      
     </div>
   );
 }
