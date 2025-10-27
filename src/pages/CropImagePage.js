@@ -631,7 +631,7 @@ export default function CropImagePage() {
                 onMouseDown={(e) => handleMouseDown(e)}
               >
                 <div
-                  className="absolute w-3 h-3 bg-blue-500 border border-white cursor-nw-resize"
+                  className="absolute w-2 h-2 bg-blue-500 border border-white cursor-nw-resize"
                   style={{ left: '-6px', top: '-6px' }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
@@ -639,7 +639,7 @@ export default function CropImagePage() {
                   }}
                 />
                 <div
-                  className="absolute w-3 h-3 bg-blue-500 border border-white cursor-ne-resize"
+                  className="absolute w-2 h-2 bg-blue-500 border border-white cursor-ne-resize"
                   style={{ right: '-6px', top: '-6px' }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
@@ -647,7 +647,7 @@ export default function CropImagePage() {
                   }}
                 />
                 <div
-                  className="absolute w-3 h-3 bg-blue-500 border border-white cursor-sw-resize"
+                  className="absolute w-2 h-2 bg-blue-500 border border-white cursor-sw-resize"
                   style={{ left: '-6px', bottom: '-6px' }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
@@ -655,7 +655,7 @@ export default function CropImagePage() {
                   }}
                 />
                 <div
-                  className="absolute w-3 h-3 bg-blue-500 border border-white cursor-se-resize"
+                  className="absolute w-2 h-2 bg-blue-500 border border-white cursor-se-resize"
                   style={{ right: '-6px', bottom: '-6px' }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
@@ -663,7 +663,7 @@ export default function CropImagePage() {
                   }}
                 />
                 <div
-                  className="absolute w-3 h-3 bg-blue-500 border border-white cursor-n-resize"
+                  className="absolute w-2 h-2 bg-blue-500 border border-white cursor-n-resize"
                   style={{ left: '50%', top: '-6px', transform: 'translateX(-50%)' }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
@@ -671,7 +671,7 @@ export default function CropImagePage() {
                   }}
                 />
                 <div
-                  className="absolute w-3 h-3 bg-blue-500 border border-white cursor-s-resize"
+                  className="absolute w-2 h-2 bg-blue-500 border border-white cursor-s-resize"
                   style={{ left: '50%', bottom: '-6px', transform: 'translateX(-50%)' }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
@@ -679,7 +679,7 @@ export default function CropImagePage() {
                   }}
                 />
                 <div
-                  className="absolute w-3 h-3 bg-blue-500 border border-white cursor-w-resize"
+                  className="absolute w-2 h-2 bg-blue-500 border border-white cursor-w-resize"
                   style={{ left: '-6px', top: '50%', transform: 'translateY(-50%)' }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
@@ -687,7 +687,7 @@ export default function CropImagePage() {
                   }}
                 />
                 <div
-                  className="absolute w-3 h-3 bg-blue-500 border border-white cursor-e-resize"
+                  className="absolute w-2 h-2 bg-blue-500 border border-white cursor-e-resize"
                   style={{ right: '-6px', top: '50%', transform: 'translateY(-50%)' }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
