@@ -338,45 +338,45 @@ export default function ColorPickerPage() {
       description: "This photo cropper is entirely free to use. No registrations, limits, or watermarks.",
     },
   ];
-  
+
   return (
     <div className={`min-h-screen ${bgPrimary}`}>
       <header className={`${bgSecondary} backdrop-blur-md border-b ${borderColor} sticky top-0 z-50`}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-                  <div className="flex items-center justify-between">
-                    {/* Left Side */}
-                    <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                        <Palette className="text-white" size={20} />
-                      </div>
-                      <div>
-                        <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                          ColorPicker Pro
-                        </h1>
-                        <p className={`text-xs ${textTertiary} hidden sm:block`}>Professional Color Tool</p>
-                      </div>
-                    </div>
-      
-                    {/* Right Side: Theme + Auth Buttons Together */}
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => setIsDarkMode(!isDarkMode)}
-                        className={`p-2 sm:p-3 rounded-lg ${buttonBg} ${textPrimary} ${hoverBg} transition-all shadow-lg`}
-                        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                      >
-                        {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                      </button>
-      
-                      <button className="px-4 py-2 text-white border border-gray-600 rounded hover:bg-gray-800">
-                        Login
-                      </button>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Signup
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </header>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center justify-between">
+            {/* Left Side */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                <Palette className="text-white" size={20} />
+              </div>
+              <div>
+                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                  ColorPicker Pro
+                </h1>
+                <p className={`text-xs ${textTertiary} hidden sm:block`}>Professional Color Tool</p>
+              </div>
+            </div>
+
+            {/* Right Side: Theme + Auth Buttons Together */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`p-2 sm:p-3 rounded-lg ${buttonBg} ${textPrimary} ${hoverBg} transition-all shadow-lg`}
+                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              >
+                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+              </button>
+
+              <button className="px-4 py-2 text-white border border-gray-600 rounded hover:bg-gray-800">
+                Login
+              </button>
+              <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                Signup
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
       <div className="flex flex-col lg:flex-row">
         <div className={`w-full lg:w-96 ${bgCard} backdrop-blur-sm lg:border-r ${borderColor} p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-screen overflow-y-auto`}>
           <div className={`${inputBg} rounded-xl p-1.5 flex gap-1`}>
@@ -417,7 +417,7 @@ export default function ColorPickerPage() {
 
           <div className={`${bgCard} backdrop-blur-sm rounded-xl p-4 sm:p-5 border ${borderColor}`}>
             <h2 className={`text-xs sm:text-sm font-semibold mb-3 ${textSecondary} uppercase tracking-wide`}>Hex Code</h2>
-            <div className="flex gap-2">
+            <div className="flex gap-0">
               <input
                 type="text"
                 value={hexValue}
@@ -479,14 +479,21 @@ export default function ColorPickerPage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-x-auto">
+
           {activeTab === 'color-picker' ? (
             <div className="flex flex-col items-center w-full px-4">
+              <div className="text-center mt-5 mb-5">
+            <div className="bg-blue-100 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[80px] mx-auto w-[300px] sm:w-[400px] md:w-[700px] shadow-md">
+              <p className="text-blue-800 text-sm sm:text-base font-semibold">Ad Space 728x90</p>
+              <p className="text-blue-600 text-xs sm:text-sm mt-1">Leaderboard Banner Ad Here</p>
+            </div>
+          </div>
               <div className="w-full" style={{ display: 'flex', justifyContent: 'center' }}>
                 <HexColorPicker
                   color={hexValue}
                   onChange={(newHex) => setHexValue(newHex)}
                   className={`rounded-2xl shadow-2xl border-2 ${borderColor}`}
-                  style={{ height: '400px', width: '600px' }}
+                  style={{ height: '500px', width: '700px' }}
                 />
               </div>
             </div>
@@ -564,7 +571,9 @@ export default function ColorPickerPage() {
               <canvas ref={canvasRef} className="hidden" />
             </div>
           )}
+
         </div>
+
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-12 pb-12 space-y-10">
@@ -1002,17 +1011,17 @@ export default function ColorPickerPage() {
               <div className="flex items-center gap-6">
                 <a href="#" className={`${textTertiary} hover:text-blue-400 transition`}>
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                 </a>
                 <a href="#" className={`${textTertiary} hover:text-blue-400 transition`}>
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
                   </svg>
                 </a>
                 <a href="#" className={`${textTertiary} hover:text-blue-400 transition`}>
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"/>
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" />
                   </svg>
                 </a>
               </div>
