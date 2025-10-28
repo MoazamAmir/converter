@@ -34,31 +34,18 @@ export default function ColorPickerPage() {
   const buttonBg = isDarkMode ? 'bg-slate-700/50' : 'bg-gray-200';
 
   const startLivePicker = async () => {
-  // 1. Ensure it's a secure context (HTTPS required for EyeDropper)
-  if (!window.isSecureContext) {
-    alert('Live color picker requires HTTPS (secure context).');
-    return;
-  }
-
-  // 2. Check browser support
-  if (!('EyeDropper' in window)) {
-    alert('Your browser does not support live color picking. Please use Chrome 95+, Edge 95+, or Opera 81+.');
-    return;
-  }
-
-  try {
-    // 3. Open native system color picker (no new tab!)
-    const eyeDropper = new window.EyeDropper();
-    const result = await eyeDropper.open(); // This NEVER opens a new tab
-
-    if (result?.sRGBHex) {
-      setHexValue(result.sRGBHex.toUpperCase());
+    try {
+      if ('EyeDropper' in window) {
+        const eyeDropper = new window.EyeDropper();
+        const result = await eyeDropper.open();
+        setHexValue(result.sRGBHex.toUpperCase());
+      } else {
+        alert('Live Color Picker is not supported in your browser. Please use Chrome, Edge, or Opera (version 95+).');
+      }
+    } catch (err) {
+      console.log('Color picking cancelled or failed');
     }
-  } catch (err) {
-    // User cancelled or permission denied — no action needed
-    console.log('Color picking cancelled or failed:', err.message);
-  }
-};
+  };
 
   const hexToHSL = (hex) => {
     if (hex.length === 4) {
