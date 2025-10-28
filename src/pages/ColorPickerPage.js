@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Copy, Upload, Palette, Image as ImageIcon, Check, Star, Moon, Sun } from 'lucide-react';
+import { Copy, Upload, Palette, Image as ImageIcon, Check, Star, Moon, Sun, Pipette, X } from 'lucide-react';
 import { HexColorPicker } from 'react-colorful';
 import { Shield, Scissors, Ruler, Globe, Heart } from "lucide-react";
 
@@ -22,7 +22,6 @@ export default function ColorPickerPage() {
   const canvasRef = useRef(null);
   const imageRef = useRef(null);
 
-  // Theme classes based on mode
   const bgPrimary = isDarkMode ? 'bg-[#1a1a1a]' : 'bg-[#1a1a1a]';
   const bgSecondary = isDarkMode ? 'bg-slate-900/80' : 'bg-white/95';
   const bgCard = isDarkMode ? 'bg-slate-800/50' : 'bg-white';
@@ -34,7 +33,33 @@ export default function ColorPickerPage() {
   const inputBg = isDarkMode ? 'bg-slate-700/50' : 'bg-gray-100';
   const buttonBg = isDarkMode ? 'bg-slate-700/50' : 'bg-gray-200';
 
-  // Convert hex to HSL (for harmonies, shades, etc.)
+  const startLivePicker = async () => {
+  // 1. Ensure it's a secure context (HTTPS required for EyeDropper)
+  if (!window.isSecureContext) {
+    alert('Live color picker requires HTTPS (secure context).');
+    return;
+  }
+
+  // 2. Check browser support
+  if (!('EyeDropper' in window)) {
+    alert('Your browser does not support live color picking. Please use Chrome 95+, Edge 95+, or Opera 81+.');
+    return;
+  }
+
+  try {
+    // 3. Open native system color picker (no new tab!)
+    const eyeDropper = new window.EyeDropper();
+    const result = await eyeDropper.open(); // This NEVER opens a new tab
+
+    if (result?.sRGBHex) {
+      setHexValue(result.sRGBHex.toUpperCase());
+    }
+  } catch (err) {
+    // User cancelled or permission denied — no action needed
+    console.log('Color picking cancelled or failed:', err.message);
+  }
+};
+
   const hexToHSL = (hex) => {
     if (hex.length === 4) {
       hex = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
@@ -344,7 +369,6 @@ export default function ColorPickerPage() {
       <header className={`${bgSecondary} backdrop-blur-md border-b ${borderColor} sticky top-0 z-50`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            {/* Left Side */}
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
                 <Palette className="text-white" size={20} />
@@ -357,7 +381,6 @@ export default function ColorPickerPage() {
               </div>
             </div>
 
-            {/* Right Side: Theme + Auth Buttons Together */}
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
@@ -367,24 +390,25 @@ export default function ColorPickerPage() {
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
 
-              <button className="px-4 py-2 text-white border border-gray-600 rounded hover:bg-gray-800">
+              <button className="hidden sm:block px-4 py-2 text-white border border-gray-600 rounded hover:bg-gray-800">
                 Login
               </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              <button className="hidden sm:block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                 Signup
               </button>
             </div>
           </div>
         </div>
       </header>
+
       <div className="flex flex-col lg:flex-row">
-        <div className={`w-full lg:w-96 ${bgCard} backdrop-blur-sm lg:border-r ${borderColor} p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-screen overflow-y-auto`}>
+        <div className={`w-full lg:w-96 ${borderColor} backdrop-blur-sm lg:border-r ${borderColor} p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-screen overflow-y-auto`}>
           <div className={`${inputBg} rounded-xl p-1.5 flex gap-1`}>
             <button
               onClick={() => setActiveTab('color-picker')}
               className={`flex-1 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm ${activeTab === 'color-picker'
-                ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30'
-                : `${textTertiary} hover:text-white ${hoverBg}`
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30'
+                  : `${textTertiary} hover:text-white ${hoverBg}`
                 }`}
             >
               <Palette size={16} className="sm:w-[18px] sm:h-[18px]" />
@@ -394,14 +418,28 @@ export default function ColorPickerPage() {
             <button
               onClick={() => setActiveTab('image-picker')}
               className={`flex-1 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm ${activeTab === 'image-picker'
-                ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/30'
-                : `${textTertiary} hover:text-white ${hoverBg}`
+                  ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/30'
+                  : `${textTertiary} hover:text-white ${hoverBg}`
                 }`}
             >
               <ImageIcon size={16} className="sm:w-[18px] sm:h-[18px]" />
               <span className="hidden sm:inline">Image Picker</span>
               <span className="sm:hidden">Image</span>
             </button>
+          </div>
+
+          <div className={`${bgCard} backdrop-blur-sm rounded-xl p-4 sm:p-5 border ${borderColor} space-y-3`}>
+            <h2 className="text-xl sm:text-2xl font-bold text-white">Pick a color on your screen</h2>
+            <button
+              onClick={startLivePicker}
+              className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg flex items-center justify-center gap-2 hover:scale-105 transform"
+            >
+              <Pipette size={20} />
+              <span>Pick color</span>
+            </button>
+            {/* <p className="text-xs sm:text-sm text-gray-400">
+      Press <kbd className="px-1.5 py-0.5 bg-gray-800 rounded text-xs font-mono">i</kbd> to pick color
+    </p> */}
           </div>
 
           <div className={`${bgCard} backdrop-blur-sm rounded-xl p-4 sm:p-5 border ${borderColor}`}>
@@ -417,7 +455,7 @@ export default function ColorPickerPage() {
 
           <div className={`${bgCard} backdrop-blur-sm rounded-xl p-4 sm:p-5 border ${borderColor}`}>
             <h2 className={`text-xs sm:text-sm font-semibold mb-3 ${textSecondary} uppercase tracking-wide`}>Hex Code</h2>
-            <div className="flex gap-0">
+            <div className="flex gap-2">
               <input
                 type="text"
                 value={hexValue}
@@ -433,8 +471,8 @@ export default function ColorPickerPage() {
               <button
                 onClick={() => copyToClipboard(hexValue, 'hex')}
                 className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all shadow-lg ${copiedHex
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600'
                   }`}
               >
                 {copiedHex ? <Check size={18} /> : <Copy size={18} />}
@@ -450,8 +488,8 @@ export default function ColorPickerPage() {
                   key={format}
                   onClick={() => setActiveFormat(format)}
                   className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all ${activeFormat === format
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                    : `${buttonBg} ${textTertiary} hover:text-white ${hoverBg}`
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                      : `${buttonBg} ${textTertiary} hover:text-white ${hoverBg}`
                     }`}
                 >
                   {format}
@@ -468,8 +506,8 @@ export default function ColorPickerPage() {
               <button
                 onClick={() => copyToClipboard(getFormatValue(), 'format')}
                 className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all shadow-lg ${copiedFormat
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
                   }`}
               >
                 {copiedFormat ? <Check size={18} /> : <Copy size={18} />}
@@ -479,21 +517,20 @@ export default function ColorPickerPage() {
         </div>
 
         <div className="flex-1 flex items-center justify-center p-4 sm:p-8 overflow-x-auto">
-
           {activeTab === 'color-picker' ? (
             <div className="flex flex-col items-center w-full px-4">
               <div className="text-center mt-5 mb-5">
-            <div className="bg-blue-100 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[80px] mx-auto w-[300px] sm:w-[400px] md:w-[700px] shadow-md">
-              <p className="text-blue-800 text-sm sm:text-base font-semibold">Ad Space 728x90</p>
-              <p className="text-blue-600 text-xs sm:text-sm mt-1">Leaderboard Banner Ad Here</p>
-            </div>
-          </div>
+                <div className="bg-blue-100 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[80px] mx-auto w-[300px] sm:w-[400px] md:w-[700px] shadow-md">
+                  <p className="text-blue-800 text-sm sm:text-base font-semibold">Ad Space 728x90</p>
+                  <p className="text-blue-600 text-xs sm:text-sm mt-1">Leaderboard Banner Ad Here</p>
+                </div>
+              </div>
               <div className="w-full" style={{ display: 'flex', justifyContent: 'center' }}>
                 <HexColorPicker
                   color={hexValue}
                   onChange={(newHex) => setHexValue(newHex)}
                   className={`rounded-2xl shadow-2xl border-2 ${borderColor}`}
-                  style={{ height: '500px', width: '700px' }}
+                  style={{ height: '500px', width: '700px', maxWidth: '100%' }}
                 />
               </div>
             </div>
@@ -571,13 +608,10 @@ export default function ColorPickerPage() {
               <canvas ref={canvasRef} className="hidden" />
             </div>
           )}
-
         </div>
-
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-12 pb-12 space-y-10">
-        {/* Color Variations Section */}
         <div className={`${bgCard} backdrop-blur-sm rounded-xl p-5 border ${borderColor}`}>
           <h2 className={`text-sm font-semibold mb-3 ${textSecondary} uppercase tracking-wide`}>
             Color Variations
@@ -587,7 +621,6 @@ export default function ColorPickerPage() {
             generated by adding pure white in 10% increments.
           </p>
 
-          {/* Shades */}
           <div className="mb-6">
             <h3 className={`text-xs font-semibold mb-2 ${textSecondary}`}>Shades</h3>
             <div className="flex items-center gap-1 mb-2">
@@ -628,7 +661,6 @@ export default function ColorPickerPage() {
             </div>
           </div>
 
-          {/* Tints */}
           <div>
             <h3 className={`text-xs font-semibold mb-2 ${textSecondary}`}>Tints</h3>
             <div className="flex items-center gap-1 mb-2">
@@ -670,7 +702,6 @@ export default function ColorPickerPage() {
           </div>
         </div>
 
-        {/* Color Harmonies Section */}
         <div className={`${bgCard} backdrop-blur-sm rounded-xl p-5 border ${borderColor}`}>
           <h2 className={`text-sm font-semibold mb-3 ${textSecondary} uppercase tracking-wide`}>
             Color Harmonies
@@ -683,8 +714,8 @@ export default function ColorPickerPage() {
                   key={harmony}
                   onClick={() => setActiveHarmony(harmony)}
                   className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${activeHarmony === harmony
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : `${buttonBg} ${textTertiary} hover:text-white ${hoverBg}`
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                      : `${buttonBg} ${textTertiary} hover:text-white ${hoverBg}`
                     }`}
                 >
                   {harmony}
@@ -718,7 +749,6 @@ export default function ColorPickerPage() {
           </div>
         </div>
 
-        {/* Color Contrast Checker */}
         <div className={`${bgCard} backdrop-blur-sm rounded-xl p-5 border ${borderColor}`}>
           <h2 className={`text-sm font-semibold mb-3 ${textSecondary} uppercase tracking-wide`}>
             Color Contrast Checker
@@ -793,8 +823,8 @@ export default function ColorPickerPage() {
                     key={star}
                     size={16}
                     className={`${star <= Math.floor(contrastRatio / 2)
-                      ? "text-yellow-400 fill-yellow-400"
-                      : "text-gray-400"
+                        ? "text-yellow-400 fill-yellow-400"
+                        : "text-gray-400"
                       }`}
                   />
                 ))}
@@ -895,7 +925,7 @@ export default function ColorPickerPage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto py-10">
+      <div className="max-w-2xl mx-auto py-10 px-4">
         <h2 className={`text-sm font-semibold ${textSecondary} uppercase tracking-wide mb-2`}>
           Color Harmony
         </h2>
