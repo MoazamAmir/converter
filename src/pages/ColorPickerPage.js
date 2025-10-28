@@ -369,13 +369,13 @@ export default function ColorPickerPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button
+              {/* <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className={`p-2 sm:p-3 rounded-lg ${buttonBg} ${textPrimary} ${hoverBg} transition-all shadow-lg`}
                 title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+              </button> */}
 
               <button className="hidden sm:block px-4 py-2 text-white border border-gray-600 rounded hover:bg-gray-800">
                 Login

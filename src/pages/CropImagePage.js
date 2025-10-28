@@ -290,13 +290,13 @@ export default function CropImagePage() {
               </div>
 
               <div className="flex items-center gap-3">
-                <button
+                {/* <button
                   onClick={() => setIsDarkMode(!isDarkMode)}
                   className={`p-2 sm:p-3 rounded-lg ${buttonBg} ${textPrimary} ${hoverBg} transition-all shadow-lg`}
                   title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 >
                   {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                </button>
+                </button> */}
 
                 <button className={`px-4 py-2 border rounded ${textPrimary} ${borderColor} hover:opacity-90`}>
                   Login
