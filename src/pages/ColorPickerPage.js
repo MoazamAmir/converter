@@ -394,8 +394,8 @@ export default function ColorPickerPage() {
             <button
               onClick={() => setActiveTab('color-picker')}
               className={`flex-1 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm ${activeTab === 'color-picker'
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30'
-                  : `${textTertiary} hover:text-white ${hoverBg}`
+                ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30'
+                : `${textTertiary} hover:text-white ${hoverBg}`
                 }`}
             >
               <Palette size={16} className="sm:w-[18px] sm:h-[18px]" />
@@ -405,8 +405,8 @@ export default function ColorPickerPage() {
             <button
               onClick={() => setActiveTab('image-picker')}
               className={`flex-1 px-2 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm ${activeTab === 'image-picker'
-                  ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/30'
-                  : `${textTertiary} hover:text-white ${hoverBg}`
+                ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/30'
+                : `${textTertiary} hover:text-white ${hoverBg}`
                 }`}
             >
               <ImageIcon size={16} className="sm:w-[18px] sm:h-[18px]" />
@@ -458,8 +458,8 @@ export default function ColorPickerPage() {
               <button
                 onClick={() => copyToClipboard(hexValue, 'hex')}
                 className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all shadow-lg ${copiedHex
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600'
                   }`}
               >
                 {copiedHex ? <Check size={18} /> : <Copy size={18} />}
@@ -475,8 +475,8 @@ export default function ColorPickerPage() {
                   key={format}
                   onClick={() => setActiveFormat(format)}
                   className={`px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs font-semibold transition-all ${activeFormat === format
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                      : `${buttonBg} ${textTertiary} hover:text-white ${hoverBg}`
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                    : `${buttonBg} ${textTertiary} hover:text-white ${hoverBg}`
                     }`}
                 >
                   {format}
@@ -493,8 +493,8 @@ export default function ColorPickerPage() {
               <button
                 onClick={() => copyToClipboard(getFormatValue(), 'format')}
                 className={`px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-all shadow-lg ${copiedFormat
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600'
                   }`}
               >
                 {copiedFormat ? <Check size={18} /> : <Copy size={18} />}
@@ -507,9 +507,11 @@ export default function ColorPickerPage() {
           {activeTab === 'color-picker' ? (
             <div className="flex flex-col items-center w-full px-4">
               <div className="text-center mt-5 mb-5">
-                <div className="bg-blue-100 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[80px] mx-auto w-[300px] sm:w-[400px] md:w-[700px] shadow-md">
-                  <p className="text-blue-800 text-sm sm:text-base font-semibold">Ad Space 728x90</p>
-                  <p className="text-blue-600 text-xs sm:text-sm mt-1">Leaderboard Banner Ad Here</p>
+                <div className="text-center mt-5">
+                  <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center h-[120px] mx-auto w-full w-[728px] shadow-md border border-blue-200 dark:border-blue-800">
+                    <p className="text-blue-800 dark:text-blue-300 text-sm sm:text-base font-semibold">Advertisement Space 728x90</p>
+                    <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mt-1">Your Banner Ad Here</p>
+                  </div>
                 </div>
               </div>
               <div className="w-full" style={{ display: 'flex', justifyContent: 'center' }}>
@@ -701,8 +703,8 @@ export default function ColorPickerPage() {
                   key={harmony}
                   onClick={() => setActiveHarmony(harmony)}
                   className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${activeHarmony === harmony
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : `${buttonBg} ${textTertiary} hover:text-white ${hoverBg}`
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : `${buttonBg} ${textTertiary} hover:text-white ${hoverBg}`
                     }`}
                 >
                   {harmony}
@@ -810,8 +812,8 @@ export default function ColorPickerPage() {
                     key={star}
                     size={16}
                     className={`${star <= Math.floor(contrastRatio / 2)
-                        ? "text-yellow-400 fill-yellow-400"
-                        : "text-gray-400"
+                      ? "text-yellow-400 fill-yellow-400"
+                      : "text-gray-400"
                       }`}
                   />
                 ))}

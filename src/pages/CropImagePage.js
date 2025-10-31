@@ -322,9 +322,9 @@ export default function CropImagePage() {
           </div>
 
           <div className="text-center mt-5">
-            <div className="bg-blue-100 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[80px] mx-auto w-[300px] sm:w-[400px] md:w-[700px] shadow-md">
-              <p className="text-blue-800 text-sm sm:text-base font-semibold">Ad Space 728x90</p>
-              <p className="text-blue-600 text-xs sm:text-sm mt-1">Leaderboard Banner Ad Here</p>
+            <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full max-w-[728px] shadow-md border border-blue-200 dark:border-blue-800">
+              <p className="text-blue-800 dark:text-blue-300 text-sm sm:text-base font-semibold">Advertisement Space 728x90</p>
+              <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mt-1">Your Banner Ad Here</p>
             </div>
           </div>
 
@@ -371,13 +371,13 @@ export default function CropImagePage() {
         </div>
 
         <div className="hidden lg:block absolute left-4 top-[390px]">
-          <div className="bg-blue-100 rounded-lg p-4 flex flex-col items-center justify-center w-[120px] h-[500px] shadow-md">
+          <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full w-[110px] h-[500px] shadow-md border border-blue-200 dark:border-blue-800">
             <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">Left Skyscraper Banner</p>
           </div>
         </div>
 
         <div className="hidden lg:block absolute right-4 top-[390px]">
-          <div className="bg-blue-100 rounded-lg p-4 flex flex-col items-center justify-center w-[120px] h-[500px] shadow-md">
+          <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full w-[110px] h-[500px] shadow-md border border-blue-200 dark:border-blue-800">
             <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">Right Skyscraper Banner</p>
           </div>
         </div>
@@ -516,13 +516,13 @@ export default function CropImagePage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                      ColorPicker Pro
+                      CropImage Pro
                     </h3>
                     <p className={`text-xs ${textTertiary}`}>Professional Tool</p>
                   </div>
                 </div>
                 <p className={`text-sm ${textTertiary} text-center md:text-left`}>
-                  Your ultimate color picking and design tool for professional workflows.
+                  Your ultimate Crop Image and design tool for professional workflows.
                 </p>
               </div>
 
@@ -549,7 +549,7 @@ export default function CropImagePage() {
 
             <div className={`border-t ${borderColor} pt-6`}>
               <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                <p className={`text-sm ${textTertiary}`}>© {new Date().getFullYear()} ColorPicker Pro. All rights reserved.</p>
+                <p className={`text-sm ${textTertiary}`}>© {new Date().getFullYear()} CropImage Pro. All rights reserved.</p>
                 <div className="flex items-center gap-6">
                   {['facebook', 'twitter', 'linkedin'].map((s) => (
                     <a key={s} href="#" className={`${textTertiary} hover:text-blue-400 transition`}>

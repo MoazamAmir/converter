@@ -90,7 +90,7 @@ export default function ConverterUI(props) {
     { name: 'Crop Image', desc: 'Use this tool to crop unwanted areas from your image', color: 'green', url: '/tools/crop-image' },
     { name: 'Image Compressor', desc: 'Reduce image files size by up to 80 to 90% using this tool', color: 'purple', url: '/tools/image-compressor' },
     { name: 'Color Picker', desc: 'Quickly pick a color from the color wheel or from your image online', color: 'pink', url: '/tools/color-picker' },
-    { name: 'Image Enlarger', desc: 'A fast way to make your images bigger', color: 'indigo', url: '/tools/image-enlarger' },
+    { name: 'Rotate Image', desc: 'A fast way to make your images bigger', color: 'indigo', url: '/tools/rotate-image' },
     { name: 'Collage Maker', desc: 'Create a beautiful photo collage from your photos', color: 'orange', url: '/tools/collage-maker' }
   ];
 
