@@ -622,6 +622,7 @@ export default function CropImagePage({ isDarkMode }) {
           </div>
         </div>
       </div>
+      <Footer currentPage={location.pathname} isDarkMode={isDarkMode} />
     </div>
   );
 }

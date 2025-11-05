@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import useConverter from './hooks/useConverter';
 import Header from './components/Header'; // ✅ Import new Header
-import ConverterUI from './components/ConverterUI';
+import ConverterUI from './pages/ConverterUI';
 import ImageResizerPage from './pages/ImageResizerPage';
 import CropImagePage from './pages/CropImagePage';
 import ImageCompressorPage from './pages/ImageCompressorPage';
