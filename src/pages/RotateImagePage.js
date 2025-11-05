@@ -30,16 +30,16 @@ export default function ImageEditor() {
   const containerRef = useRef(null); // For drag bounds
 
   // ✅ Fix dark mode background
-  const bgPrimary = isDarkMode ? 'bg-gray-900' : 'bg-gray-50';
-  const bgSecondary = isDarkMode ? 'bg-gray-800/80' : 'bg-white/95';
-  const bgCard = isDarkMode ? 'bg-gray-800' : 'bg-white';
+  const bgPrimary = isDarkMode ? 'bg-[#1a1a1a]' : 'bg-[#1a1a1a]';
+  const bgSecondary = isDarkMode ? 'bg-slate-900/80' : 'bg-white/95';
+  const bgCard = isDarkMode ? 'bg-slate-800/50' : 'bg-white';
   const textPrimary = isDarkMode ? 'text-white' : 'text-gray-900';
-  const textSecondary = isDarkMode ? 'text-gray-300' : 'text-gray-700';
-  const textTertiary = isDarkMode ? 'text-gray-400' : 'text-gray-500';
-  const borderColor = isDarkMode ? 'border-gray-700' : 'border-gray-200';
-  const hoverBg = isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100';
-  const inputBg = isDarkMode ? 'bg-gray-700' : 'bg-gray-100';
-  const buttonBg = isDarkMode ? 'bg-gray-700' : 'bg-gray-200';
+  const textSecondary = isDarkMode ? 'text-slate-300' : 'text-gray-700';
+  const textTertiary = isDarkMode ? 'text-slate-400' : 'text-gray-500';
+  const borderColor = isDarkMode ? 'border-slate-700/50' : 'border-gray-200';
+  const hoverBg = isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-gray-100';
+  const inputBg = isDarkMode ? 'bg-slate-700/50' : 'bg-gray-100';
+  const buttonBg = isDarkMode ? 'bg-slate-700/50' : 'bg-gray-200';
 
   // Mouse rotation state
   const [isDragging, setIsDragging] = useState(false);
@@ -231,37 +231,7 @@ export default function ImageEditor() {
 
   return (
     <div className={`min-h-screen ${bgPrimary} transition-colors duration-300`}>
-      {/* Header */}
-      <header className={`${bgSecondary} backdrop-blur-md border-b ${borderColor} sticky top-0 z-50`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                <Palette className="text-white" size={20} />
-              </div>
-              <div>
-                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                  RotateImage Pro
-                </h1>
-                <p className={`text-xs ${textTertiary} hidden sm:block`}>Professional Rotate Image Tool</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button className={`px-4 py-2 border rounded ${textPrimary} ${borderColor} hover:opacity-90`}>
-                Login
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                Signup
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className={`${bgSecondary} px-6 py-3 border-b ${borderColor}`}>
-        <div className="max-w-7xl mx-auto text-sm text-gray-400">Home › Rotate Image</div>
-      </div>
-
+     
       <div className="max-w-7xl mx-auto">
         {!image ? (
           // Upload Screen
@@ -271,8 +241,14 @@ export default function ImageEditor() {
               <p className="text-purple-200 text-lg">Professional editing with advanced features</p>
             </div>
 
-            <div className="max-w-4xl mx-auto mt-10">
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-1 rounded-xl mb-6">
+            <div className="max-w-4xl mx-auto mt-5">
+              <div className="text-center mt-5">
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full max-w-[728px] shadow-md border border-blue-200 dark:border-blue-800">
+                <p className="text-blue-800 dark:text-blue-300 text-sm sm:text-base font-semibold">Advertisement Space 728x90</p>
+                <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mt-1">Your Banner Ad Here</p>
+              </div>
+            </div>
+              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-1 rounded-xl mb-6 mt-8">
                 <div className={`${bgCard} rounded-xl p-12 text-center`}>
                   <div
                     className={`border-4 border-dashed ${isDarkMode ? 'border-white/30' : 'border-gray-300'} rounded-xl p-16`}
@@ -296,6 +272,17 @@ export default function ImageEditor() {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+            <div className="hidden lg:block absolute left-4 top-[390px]">
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full w-[110px] h-[500px] shadow-md border border-blue-200 dark:border-blue-800">
+                <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">Left Skyscraper Banner</p>
+              </div>
+            </div>
+
+            <div className="hidden lg:block absolute right-4 top-[390px]">
+              <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full w-[110px] h-[500px] shadow-md border border-blue-200 dark:border-blue-800">
+                <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">Right Skyscraper Banner</p>
               </div>
             </div>
           </div>
@@ -452,13 +439,13 @@ export default function ImageEditor() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                    ImageEditor Pro
+                    RotateImage Pro
                   </h3>
                   <p className={`text-xs ${textTertiary}`}>Professional Tool</p>
                 </div>
               </div>
               <p className={`text-sm ${textTertiary} text-center md:text-left`}>
-                Your ultimate Image Editor and design tool for professional workflows.
+                Your ultimate RotateImage and design tool for professional workflows.
               </p>
             </div>
 
@@ -485,7 +472,7 @@ export default function ImageEditor() {
 
           <div className={`border-t ${borderColor} pt-6`}>
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className={`text-sm ${textTertiary}`}>© {new Date().getFullYear()} ImageEditor Pro. All rights reserved.</p>
+              <p className={`text-sm ${textTertiary}`}>© {new Date().getFullYear()} RotateImage Pro. All rights reserved.</p>
               <div className="flex items-center gap-6">
                 {['facebook', 'twitter', 'linkedin'].map((s) => (
                   <a key={s} href="#" className={`${textTertiary} hover:text-blue-400 transition`}>

@@ -353,40 +353,7 @@ export default function ColorPickerPage() {
 
   return (
     <div className={`min-h-screen ${bgPrimary}`}>
-      <header className={`${bgSecondary} backdrop-blur-md border-b ${borderColor} sticky top-0 z-50`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                <Palette className="text-white" size={20} />
-              </div>
-              <div>
-                <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                  ColorPicker Pro
-                </h1>
-                <p className={`text-xs ${textTertiary} hidden sm:block`}>Professional Color Tool</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              {/* <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className={`p-2 sm:p-3 rounded-lg ${buttonBg} ${textPrimary} ${hoverBg} transition-all shadow-lg`}
-                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              >
-                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button> */}
-
-              <button className="hidden sm:block px-4 py-2 text-white border border-gray-600 rounded hover:bg-gray-800">
-                Login
-              </button>
-              <button className="hidden sm:block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                Signup
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      
 
       <div className="flex flex-col lg:flex-row">
         <div className={`w-full lg:w-96 ${borderColor} backdrop-blur-sm lg:border-r ${borderColor} p-4 sm:p-6 space-y-4 sm:space-y-6 max-h-screen overflow-y-auto`}>
@@ -508,12 +475,13 @@ export default function ColorPickerPage() {
             <div className="flex flex-col items-center w-full px-4">
               <div className="text-center mt-5 mb-5">
                 <div className="text-center mt-5">
-                  <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center h-[120px] mx-auto w-full w-[728px] shadow-md border border-blue-200 dark:border-blue-800">
-                    <p className="text-blue-800 dark:text-blue-300 text-sm sm:text-base font-semibold">Advertisement Space 728x90</p>
+                  <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center h-[120px] mx-auto w-[770px] shadow-md border border-blue-200 dark:border-blue-800">
+                    <p className="text-blue-800 dark:text-blue-300 text-sm sm:text-base font-semibold">Advertisement Space 970x90</p>
                     <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mt-1">Your Banner Ad Here</p>
                   </div>
                 </div>
               </div>
+
               <div className="w-full" style={{ display: 'flex', justifyContent: 'center' }}>
                 <HexColorPicker
                   color={hexValue}
