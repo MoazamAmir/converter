@@ -71,11 +71,11 @@ export default function Header({ isDarkMode, toggleTheme }) {
             {/* Center: Logo + Title - Mobile par center, Desktop par left */}
             <div className="flex items-center gap-2 sm:gap-3 flex-1 lg:flex-initial justify-center lg:justify-start">
               {/* Logo - Bara size */}
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0">
+              {/* <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 flex-shrink-0">
                 <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path d={currentIconPath} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </div>
+              </div> */}
               {/* Title - Bara text */}
               <h1 className="font-bold text-lg sm:text-xl md:text-2xl">{currentTitle}</h1>
             </div>

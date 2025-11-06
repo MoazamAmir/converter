@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import Footer from '../components/Footer';
 import {
   Upload,
   RotateCw,
@@ -14,7 +16,7 @@ import {
   Palette,
 } from 'lucide-react';
 
-export default function ImageEditor() {
+export default function ImageEditor({ isDarkMode }) {
   const [image, setImage] = useState(null);
   const [rotation, setRotation] = useState(0);
   const [scale, setScale] = useState(1);
@@ -24,22 +26,23 @@ export default function ImageEditor() {
   const [contrast, setContrast] = useState(100);
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
-  const containerRef = useRef(null); // For drag bounds
+  const containerRef = useRef(null);
+  const location = useLocation();
 
-  // ✅ Fix dark mode background
-  const bgPrimary = isDarkMode ? 'bg-[#1a1a1a]' : 'bg-[#1a1a1a]';
-  const bgSecondary = isDarkMode ? 'bg-slate-900/80' : 'bg-white/95';
-  const bgCard = isDarkMode ? 'bg-slate-800/50' : 'bg-white';
+  // ✅ Theme-aware classes
+  const bgPrimary = isDarkMode ? 'bg-[#111727]' : 'bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100';
+  const bgCard = isDarkMode ? 'bg-[#1a2332]' : 'bg-white';
   const textPrimary = isDarkMode ? 'text-white' : 'text-gray-900';
-  const textSecondary = isDarkMode ? 'text-slate-300' : 'text-gray-700';
-  const textTertiary = isDarkMode ? 'text-slate-400' : 'text-gray-500';
-  const borderColor = isDarkMode ? 'border-slate-700/50' : 'border-gray-200';
-  const hoverBg = isDarkMode ? 'hover:bg-slate-700/50' : 'hover:bg-gray-100';
-  const inputBg = isDarkMode ? 'bg-slate-700/50' : 'bg-gray-100';
-  const buttonBg = isDarkMode ? 'bg-slate-700/50' : 'bg-gray-200';
+  const textSecondary = isDarkMode ? 'text-gray-300' : 'text-gray-700';
+  const textTertiary = isDarkMode ? 'text-gray-400' : 'text-gray-500';
+  const borderColor = isDarkMode ? 'border-gray-700' : 'border-gray-200';
+  const hoverBg = isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100';
+  const buttonBg = isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800';
+  const adBg = isDarkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-100 border-blue-200';
+  const adText = isDarkMode ? 'text-blue-300' : 'text-blue-800';
+  const adSubText = isDarkMode ? 'text-blue-400' : 'text-blue-600';
 
   // Mouse rotation state
   const [isDragging, setIsDragging] = useState(false);
@@ -121,7 +124,6 @@ export default function ImageEditor() {
     drawImage();
   }, [image, rotation, scale, flipH, flipV, brightness, contrast]);
 
-  // ✅ Mouse Rotation Handlers
   const getAngle = (clientX, clientY) => {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return 0;
@@ -143,7 +145,6 @@ export default function ImageEditor() {
     if (!isDragging) return;
     const newAngleRad = getAngle(e.clientX, e.clientY) - startAngle;
     let newAngleDeg = (newAngleRad * 180) / Math.PI;
-    // Normalize to 0–360
     newAngleDeg = ((newAngleDeg % 360) + 360) % 360;
     setRotation(newAngleDeg);
   };
@@ -166,7 +167,6 @@ export default function ImageEditor() {
     }
   }, [isDragging, startAngle, rotation, scale, flipH, flipV, brightness, contrast]);
 
-  // Rest of your functions (rotateRight, zoomIn, etc.) remain unchanged
   const rotateRight = () => {
     const newRotation = (rotation + 90) % 360;
     setRotation(newRotation);
@@ -230,36 +230,30 @@ export default function ImageEditor() {
   };
 
   return (
-    <div className={`min-h-screen ${bgPrimary} transition-colors duration-300`}>
-     
-      <div className="max-w-7xl mx-auto">
+    <div className={`min-h-screen overflow-x-hidden ${bgPrimary} transition-colors duration-300`}>
+      <div className="max-w-7xl mx-auto px-4">
         {!image ? (
           // Upload Screen
-          <div className="max-w-7xl mx-auto px-6 py-5">
+          <div className="max-w-7xl mx-auto py-5">
             <div className="text-center py-8">
-              <h1 className="text-4xl sm:text-5xl font-bold text-white mb-2">Rotate Image Pro</h1>
-              <p className="text-purple-200 text-lg">Professional editing with advanced features</p>
+              <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-center`}>Rotate Image Pro</h1>
+              <p className={`${isDarkMode ? 'text-purple-300' : 'text-purple-500'} text-lg`}>Professional editing with advanced features</p>
             </div>
 
             <div className="max-w-4xl mx-auto mt-5">
+              {/* Ad Banner */}
               <div className="text-center mt-5">
-              <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full max-w-[728px] shadow-md border border-blue-200 dark:border-blue-800">
-                <p className="text-blue-800 dark:text-blue-300 text-sm sm:text-base font-semibold">Advertisement Space 728x90</p>
-                <p className="text-blue-600 dark:text-blue-400 text-xs sm:text-sm mt-1">Your Banner Ad Here</p>
+                <div className={`rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full max-w-[728px] shadow-md border ${adBg}`}>
+                  <p className={`text-sm sm:text-base font-semibold ${adText}`}>Advertisement Space 728x90</p>
+                  <p className={`text-xs sm:text-sm mt-1 ${adSubText}`}>Your Banner Ad Here</p>
+                </div>
               </div>
-            </div>
+
+              {/* Upload Area */}
               <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-1 rounded-xl mb-6 mt-8">
                 <div className={`${bgCard} rounded-xl p-12 text-center`}>
-                  <div
-                    className={`border-4 border-dashed ${isDarkMode ? 'border-white/30' : 'border-gray-300'} rounded-xl p-16`}
-                  >
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleImageUpload}
-                      accept="image/*"
-                      className="hidden"
-                    />
+                  <div className={`border-4 border-dashed rounded-xl p-16 ${isDarkMode ? 'border-white/20' : 'border-gray-300'}`}>
+                    <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       className="px-8 py-4 bg-white text-blue-600 rounded-xl hover:bg-gray-100 font-semibold text-lg inline-flex items-center gap-2 transition-transform hover:scale-105"
@@ -274,21 +268,22 @@ export default function ImageEditor() {
                 </div>
               </div>
             </div>
+
+            {/* Sidebar Ads */}
             <div className="hidden lg:block absolute left-4 top-[390px]">
-              <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full w-[110px] h-[500px] shadow-md border border-blue-200 dark:border-blue-800">
-                <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">Left Skyscraper Banner</p>
+              <div className={`rounded-lg p-4 w-[110px] h-[500px] shadow-md border ${adBg}`}>
+                <p className={`text-xs mt-2 rotate-90 whitespace-nowrap ${adSubText}`}>Left Skyscraper Banner</p>
               </div>
             </div>
-
             <div className="hidden lg:block absolute right-4 top-[390px]">
-              <div className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full w-[110px] h-[500px] shadow-md border border-blue-200 dark:border-blue-800">
-                <p className="text-blue-600 text-xs mt-2 rotate-90 whitespace-nowrap">Right Skyscraper Banner</p>
+              <div className={`rounded-lg p-4 w-[110px] h-[500px] shadow-md border ${adBg}`}>
+                <p className={`text-xs mt-2 rotate-90 whitespace-nowrap ${adSubText}`}>Right Skyscraper Banner</p>
               </div>
             </div>
           </div>
         ) : (
           // Editor View
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-4 sm:px-6 py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 py-6">
             {/* Sidebar */}
             <div className="lg:col-span-3 space-y-6 lg:sticky lg:top-24 max-h-[calc(100vh-120px)] overflow-y-auto pr-2">
               {[
@@ -403,7 +398,7 @@ export default function ImageEditor() {
                 <div className="flex justify-center">
                   <div
                     ref={containerRef}
-                    className="relative inline-block bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 shadow-xl"
+                    className={`relative inline-block rounded-xl p-6 shadow-xl ${isDarkMode ? 'bg-[#1f2937]' : 'bg-gray-100'}`}
                   >
                     <canvas
                       ref={canvasRef}
@@ -411,14 +406,13 @@ export default function ImageEditor() {
                       className="max-w-full h-auto rounded-lg border-2 border-white/20 cursor-grab active:cursor-grabbing"
                       style={{ maxWidth: '800px', maxHeight: '600px' }}
                     />
-                    {/* Optional: Rotation hint */}
-                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs text-gray-400">
+                    <div className={`absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs ${textTertiary}`}>
                       Drag to rotate
                     </div>
                   </div>
                 </div>
                 <div className="mt-4 text-center">
-                  <p className="text-sm text-gray-400">
+                  <p className={`text-sm ${textTertiary}`}>
                     Rotation: {rotation.toFixed(1)}° | Scale: {(scale * 100).toFixed(0)}% |
                     Flip: {flipH ? 'H' : ''}{flipV ? 'V' : ''}{!flipH && !flipV ? 'None' : ''}
                   </p>
@@ -429,63 +423,7 @@ export default function ImageEditor() {
         )}
       </div>
 
-      <footer className={`${bgSecondary} backdrop-blur-md border-t ${borderColor} mt-20 py-12`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div className="flex flex-col items-center md:items-start">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                  <Palette className="text-white" size={22} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
-                    RotateImage Pro
-                  </h3>
-                  <p className={`text-xs ${textTertiary}`}>Professional Tool</p>
-                </div>
-              </div>
-              <p className={`text-sm ${textTertiary} text-center md:text-left`}>
-                Your ultimate RotateImage and design tool for professional workflows.
-              </p>
-            </div>
-
-            <div className="flex flex-col items-center md:items-start">
-              <h4 className={`text-sm font-semibold ${textSecondary} mb-4 uppercase tracking-wide`}>Features</h4>
-              <ul className={`space-y-2 text-sm ${textTertiary}`}>
-                <li className="hover:text-blue-400 transition cursor-pointer">Color Picker</li>
-                <li className="hover:text-blue-400 transition cursor-pointer">Image Extractor</li>
-                <li className="hover:text-blue-400 transition cursor-pointer">Color Harmonies</li>
-                <li className="hover:text-blue-400 transition cursor-pointer">Contrast Checker</li>
-              </ul>
-            </div>
-
-            <div className="flex flex-col items-center md:items-start">
-              <h4 className={`text-sm font-semibold ${textSecondary} mb-4 uppercase tracking-wide`}>Resources</h4>
-              <ul className={`space-y-2 text-sm ${textTertiary}`}>
-                <li className="hover:text-blue-400 transition cursor-pointer">Documentation</li>
-                <li className="hover:text-blue-400 transition cursor-pointer">Tutorials</li>
-                <li className="hover:text-blue-400 transition cursor-pointer">Support</li>
-                <li className="hover:text-blue-400 transition cursor-pointer">Privacy Policy</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className={`border-t ${borderColor} pt-6`}>
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className={`text-sm ${textTertiary}`}>© {new Date().getFullYear()} RotateImage Pro. All rights reserved.</p>
-              <div className="flex items-center gap-6">
-                {['facebook', 'twitter', 'linkedin'].map((s) => (
-                  <a key={s} href="#" className={`${textTertiary} hover:text-blue-400 transition`}>
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d={s === 'facebook' ? "M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" : s === 'twitter' ? "M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" : "M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z"} />
-                    </svg>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer currentPage={location.pathname} isDarkMode={isDarkMode} />
     </div>
   );
 }

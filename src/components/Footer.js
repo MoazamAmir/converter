@@ -60,9 +60,9 @@ export default function Footer({ currentPage = '/', isDarkMode = false }) {
           {/* Brand + Dynamic Description */}
           <div className="flex flex-col items-center md:items-start">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+              {/* <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
                 <Palette className="text-white" size={22} />
-              </div>
+              </div> */}
               <div>
                 <h3 className={`text-lg font-bold ${textPrimary}`}>{title}</h3>
                 <p className={`text-xs ${textTertiary}`}>Professional Tool</p>
@@ -76,7 +76,7 @@ export default function Footer({ currentPage = '/', isDarkMode = false }) {
           {/* Features */}
           <div className="flex flex-col items-center md:items-start">
             <h4 className={`text-sm font-semibold ${textSecondary} mb-4 uppercase tracking-wide`}>
-              Features
+              Tools
             </h4>
             <ul className={`space-y-2 text-sm ${textTertiary}`}>
               <li className="hover:text-blue-400 transition cursor-pointer">Image Conversion</li>
@@ -93,7 +93,7 @@ export default function Footer({ currentPage = '/', isDarkMode = false }) {
             </h4>
             <ul className={`space-y-2 text-sm ${textTertiary}`}>
               <li className="hover:text-blue-400 transition cursor-pointer">Documentation</li>
-              <li className="hover:text-blue-400 transition cursor-pointer">Tutorials</li>
+              {/* <li className="hover:text-blue-400 transition cursor-pointer">Tutorials</li> */}
               <li className="hover:text-blue-400 transition cursor-pointer">Support</li>
               <li className="hover:text-blue-400 transition cursor-pointer">Privacy Policy</li>
             </ul>

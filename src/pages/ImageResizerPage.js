@@ -23,7 +23,7 @@ const ImageResizerPro = ({ isDarkMode }) => {
   const originalImageRef = useRef(null);
   const location = useLocation();
 
-  // ✅ Theme-aware classes (no hardcoded dark: )
+  // Theme-aware classes (no hardcoded dark: )
   const bgPrimary = isDarkMode ? 'bg-[#111727]' : 'bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100';
   const bgCard = isDarkMode ? 'bg-[#1a2332]' : 'bg-white';
   const textPrimary = isDarkMode ? 'text-white' : 'text-gray-900';

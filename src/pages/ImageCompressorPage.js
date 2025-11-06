@@ -23,6 +23,7 @@ export default function MediaCompressor({ isDarkMode = false }) {
   const bgPrimary = isDarkMode ? 'bg-[#111727]' : 'bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100';
   const bgCard = isDarkMode ? 'bg-[#1a2332]' : 'bg-white';
   const textPrimary = isDarkMode ? 'text-white' : 'text-gray-900';
+  const borderColor = isDarkMode ? 'border-gray-700' : 'border-gray-200';
   const textSecondary = isDarkMode ? 'text-gray-300' : 'text-gray-700';
   const textTertiary = isDarkMode ? 'text-gray-400' : 'text-gray-500';
   const adBg = isDarkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-100 border-blue-200';
@@ -266,6 +267,15 @@ export default function MediaCompressor({ isDarkMode = false }) {
     };
   }, [compressedUrl]);
 
+  const features = [
+    { title: 'Perfect Quality', description: 'We intelligently apply compression to retain image quality while drastically reducing image size.' },
+    { title: 'Best Compression', description: 'Compress your images by up to 80% or more by applying lossy compression and other optimizations.' },
+    { title: 'Easy To Use', description: 'Simply upload your images and watch our tool do its magic. Even large images are compressed within seconds' },
+    { title: 'Image Formats', description: 'Our image compressor can compress JPEG and PNG images. You can compress up to 50 images at a time.' },
+    { title: 'Privacy Guaranteed', description: 'We care about file privacy. Images are uploaded via a secure 256-bit encrypted SSL connection and deleted automatically within 6 hours.' },
+    { title: 'It’s Free', description: 'Since 2012 we have compressed millions of images for free! There is no software to install, registrations, or watermarks.' },
+  ];
+
   return (
     <div className={`min-h-screen overflow-x-hidden ${bgPrimary} transition-colors duration-300`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -324,6 +334,50 @@ export default function MediaCompressor({ isDarkMode = false }) {
 
                   </div>
                 </div>
+                <div className="mt-16 max-w-7xl mx-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {features.map((item, index) => (
+                      <div
+                        key={index}
+                        className={`p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border ${borderColor} ${bgCard}`}
+                      >
+                        <div className="flex flex-col items-center">
+                          {/* <div className={textPrimary}>
+                            {React.cloneElement(item.icon, { className: `w-10 h-10 mb-4 ${textPrimary}` })}
+                          </div> */}
+                          <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>{item.title}</h3>
+                          <p className={`text-sm leading-relaxed ${textTertiary}`}>{item.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+<div className={`mt-8 sm:mt-12 ${bgCard} rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 transition-opacity duration-700 opacity-100 `}>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
+                <span className="text-2xl sm:text-3xl">❓</span>
+                How to Compressor Images?
+              </h2>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl hover-lift">
+                  <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">1</span>
+                  <div>
+                    <p className="text-gray-700 text-sm sm:text-base">Click the <span className="font-bold text-indigo-600">"Add More Files"</span> button and select from Device, Dropbox, Google Drive, OneDrive, or URL.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg sm:rounded-xl hover-lift">
+                  <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">2</span>
+                  <div>
+                    <p className="text-gray-700 text-sm sm:text-base">Select a target image format from the <span className="font-bold text-purple-600">"Output"</span> drop-down list.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg sm:rounded-xl hover-lift">
+                  <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">3</span>
+                  <div>
+                    <p className="text-gray-700 text-sm sm:text-base">Click on the <span className="font-bold text-green-600">"Convert"</span> button to start the conversion.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
               </div>
               {/* Sidebar Ads */}
               <div className="hidden lg:block absolute left-4 top-[390px]">
