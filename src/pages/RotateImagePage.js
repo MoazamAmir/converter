@@ -13,7 +13,6 @@ import {
   Undo,
   Redo,
   Image as ImageIcon,
-  Palette,
 } from 'lucide-react';
 
 export default function ImageEditor({ isDarkMode }) {
@@ -47,8 +46,6 @@ export default function ImageEditor({ isDarkMode }) {
   // Mouse rotation state
   const [isDragging, setIsDragging] = useState(false);
   const [startAngle, setStartAngle] = useState(0);
-  const [centerX, setCenterX] = useState(0);
-  const [centerY, setCenterY] = useState(0);
 
   const saveToHistory = (state) => {
     const newHistory = history.slice(0, historyIndex + 1);
@@ -57,21 +54,24 @@ export default function ImageEditor({ isDarkMode }) {
     setHistoryIndex(newHistory.length - 1);
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          setImage(img);
-          const initialState = { rotation: 0, scale: 1, flipH: false, flipV: false, brightness: 100, contrast: 100 };
-          resetState(initialState);
-        };
-        img.src = event.target.result;
-      };
-      reader.readAsDataURL(file);
+  // ✅ Unified function to load image from File
+  const loadImageFromFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) {
+      alert('Please upload only image files!');
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        setImage(img);
+        const initialState = { rotation: 0, scale: 1, flipH: false, flipV: false, brightness: 100, contrast: 100 };
+        resetState(initialState);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
   };
 
   const resetState = (state) => {
@@ -135,9 +135,6 @@ export default function ImageEditor({ isDarkMode }) {
   const handleMouseDown = (e) => {
     if (!canvasRef.current) return;
     setIsDragging(true);
-    const rect = canvasRef.current.getBoundingClientRect();
-    setCenterX(rect.left + rect.width / 2);
-    setCenterY(rect.top + rect.height / 2);
     setStartAngle(getAngle(e.clientX, e.clientY) - (rotation * Math.PI) / 180);
   };
 
@@ -167,6 +164,30 @@ export default function ImageEditor({ isDarkMode }) {
     }
   }, [isDragging, startAngle, rotation, scale, flipH, flipV, brightness, contrast]);
 
+  // ✅ File select (input)
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) loadImageFromFile(file);
+  };
+
+  // ✅ Drag & Drop
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) loadImageFromFile(file);
+  };
+
+  // ✅ Transform Actions
   const rotateRight = () => {
     const newRotation = (rotation + 90) % 360;
     setRotation(newRotation);
@@ -225,7 +246,7 @@ export default function ImageEditor({ isDarkMode }) {
     if (!canvasRef.current) return;
     const link = document.createElement('a');
     link.download = 'edited-image.png';
-    link.href = canvasRef.current.toDataURL();
+    link.href = canvasRef.current.toDataURL('image/png');
     link.click();
   };
 
@@ -234,36 +255,54 @@ export default function ImageEditor({ isDarkMode }) {
       <div className="max-w-7xl mx-auto px-4">
         {!image ? (
           // Upload Screen
-          <div className="max-w-7xl mx-auto py-5">
-            <div className="text-center py-8">
-              <h1 className={`text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-center`}>Rotate Image Pro</h1>
-              <p className={`${isDarkMode ? 'text-purple-300' : 'text-purple-500'} text-lg`}>Professional editing with advanced features</p>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-center">
+                Rotate Image Pro
+              </h1>
+              <p className={`text-lg ${textTertiary}`}>Professional editing with advanced features</p>
             </div>
 
-            <div className="max-w-4xl mx-auto mt-5">
-              {/* Ad Banner */}
-              <div className="text-center mt-5">
-                <div className={`rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full max-w-[728px] shadow-md border ${adBg}`}>
-                  <p className={`text-sm sm:text-base font-semibold ${adText}`}>Advertisement Space 728x90</p>
-                  <p className={`text-xs sm:text-sm mt-1 ${adSubText}`}>Your Banner Ad Here</p>
-                </div>
+            {/* Ad Banner */}
+            <div className="text-center mt-5">
+              <div className={`rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full max-w-[728px] shadow-md border ${adBg}`}>
+                <p className={`text-sm sm:text-base font-semibold ${adText}`}>Advertisement Space 728x90</p>
+                <p className={`text-xs sm:text-sm mt-1 ${adSubText}`}>Your Banner Ad Here</p>
               </div>
+            </div>
 
-              {/* Upload Area */}
-              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-1 rounded-xl mb-6 mt-8">
-                <div className={`${bgCard} rounded-xl p-12 text-center`}>
-                  <div className={`border-4 border-dashed rounded-xl p-16 ${isDarkMode ? 'border-white/20' : 'border-gray-300'}`}>
-                    <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" className="hidden" />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className="px-8 py-4 bg-white text-blue-600 rounded-xl hover:bg-gray-100 font-semibold text-lg inline-flex items-center gap-2 transition-transform hover:scale-105"
-                    >
-                      📁 Select Image
-                    </button>
-                    <p className={`mt-6 ${textPrimary} text-lg`}>or drag and drop an image here</p>
-                    <p className={`mt-3 ${textTertiary} text-sm`}>
-                      Max file size: 10 MB. <span className="underline cursor-pointer">Sign up</span> for more.
+            {/* Upload Area */}
+            <div className="max-w-4xl mx-auto mt-10">
+              <div className="bg-gradient-to-br from-blue-500 to-purple-600 p-1 rounded-lg mb-6">
+                <div className={`${bgCard} rounded-lg p-12 text-center`}>
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`border-4 border-dashed rounded-lg p-16 transition-all duration-300 cursor-pointer ${
+                      isDragging
+                        ? isDarkMode
+                          ? 'border-blue-400 bg-blue-900/20'
+                          : 'border-blue-500 bg-blue-50'
+                        : isDarkMode
+                        ? 'border-white/20'
+                        : 'border-white/30'
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <Upload className={`w-16 h-16 mx-auto mb-4 ${isDarkMode ? 'text-purple-400' : 'text-purple-500'}`} />
+                    <h3 className={`text-2xl font-semibold ${textPrimary} mb-2`}>Upload or Drop Image</h3>
+                    <p className={`mt-6 ${isDarkMode ? 'text-white/80' : 'text-gray-800'} text-lg`}>
+                      Drag & drop an image here, or click to browse
                     </p>
+                    <p className={`mt-3 ${textTertiary} text-sm`}>Max file size: 10 MB.</p>
                   </div>
                 </div>
               </div>

@@ -9,7 +9,7 @@ import CropImagePage from './pages/CropImagePage';
 import ImageCompressorPage from './pages/ImageCompressorPage';
 import ColorPickerPage from './pages/ColorPickerPage';
 import RotateImagePage from './pages/RotateImagePage';
-import CollageMakerPage from './pages/CollageMakerPage';
+import CollageMaker from './pages/CollageMakerPage';
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -39,7 +39,7 @@ function App() {
             <Route path="/tools/image-compressor" element={<ImageCompressorPage isDarkMode={isDarkMode} />} />
             <Route path="/tools/color-picker" element={<ColorPickerPage isDarkMode={isDarkMode} />} />
             <Route path="/tools/rotate-image" element={<RotateImagePage isDarkMode={isDarkMode} />} />
-            <Route path="/tools/collage-maker" element={<CollageMakerPage isDarkMode={isDarkMode} />} />
+            <Route path="/tools/collage-maker" element={<CollageMaker isDarkMode={isDarkMode} />} />
           </Routes>
         </main>
       </BrowserRouter>

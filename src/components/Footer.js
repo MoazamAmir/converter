@@ -6,7 +6,7 @@ const toolTitleMap = {
   '/': 'Image Converter Pro',
   '/tools/image-resizer': 'Image Resizer Pro',
   '/tools/crop-image': 'Crop Image Pro',
-  '/tools/image-compressor': 'Image Compressor Pro',
+  '/tools/image-compressor': 'ⵋe Image Compressor Pro',
   '/tools/color-picker': 'Color Picker Pro',
   '/tools/rotate-image': 'Rotate Image Pro',
   '/tools/collage-maker': 'Collage Maker Pro',
