@@ -440,25 +440,6 @@ export default function CropImagePage({ isDarkMode }) {
   // =============== CROPPING EDITOR ===============
   return (
     <div className={`min-h-screen ${bgPrimary}`}>
-      <header className={`${isDarkMode ? 'bg-[#1a2332]' : 'bg-gray-50'} border-b ${borderColor} px-6 py-4`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded"></div>
-            <span className={`text-xl font-semibold ${textPrimary}`}>ImageResizer</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                setSelectedImage(null);
-                setCropSettings({ width: 200, height: 200, positionX: 50, positionY: 50 });
-              }}
-              className={`px-4 py-2 rounded font-medium ${buttonBg} hover:opacity-90`}
-            >
-              ← New Image
-            </button>
-          </div>
-        </div>
-      </header>
 
       <div className="flex h-[calc(100vh-73px)]">
         <div className={`${isDarkMode ? 'bg-[#1a2332]' : 'bg-gray-50'} w-80 border-r ${borderColor} p-6 overflow-y-auto`}>

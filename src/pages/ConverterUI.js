@@ -47,7 +47,7 @@ export default function ConverterUI(props) {
     sendChatMessage,
     handleChatKeyDown,
     isDarkMode,
-    toggleTheme, // 👈 yeh zaroori hai
+    toggleTheme, 
     
   } = props;
 
@@ -122,10 +122,6 @@ export default function ConverterUI(props) {
         .hover-lift:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
         html { scroll-behavior: smooth; } body { overflow-x: hidden; }
       `}</style>
-
-      {/* ✅ Active Header with Dark/Light Support */}
-      {/* <Header isDarkMode={isDarkMode} toggleTheme={toggleTheme} /> */}
-
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent text-center">

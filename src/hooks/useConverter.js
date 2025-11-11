@@ -68,10 +68,14 @@ export default function useConverter() {
     e.target.value = '';
   };
 
-  const handleDragOver = (e) => e.preventDefault();
+ const handleDragOver = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+};
 
   const handleDrop = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     const inputFiles = Array.from(e.dataTransfer?.files || []);
     const imageFiles = inputFiles.filter((f) => f.type && f.type.startsWith('image/'));
     if (imageFiles.length === 0) {

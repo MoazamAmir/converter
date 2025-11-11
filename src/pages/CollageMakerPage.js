@@ -1,41 +1,32 @@
 import React, { useState, useRef } from 'react';
-import { Download, Upload, Trash2, Layers, ImagePlus, Palette, Sliders, RotateCw, ZoomIn, Sparkles, Moon, Sun } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
-import Footer from '../components/Footer';
+import { Download, Trash2, Layers, ImagePlus, Palette, Sliders, RotateCw } from 'lucide-react';
 
 const CollageApp = ({ isDarkMode = false }) => {
+  const initialLayout = { name: '2×2', cols: 2, rows: 2, type: 'grid' };
+  const initialSlots = initialLayout.cols * initialLayout.rows;
+
   const [images, setImages] = useState([]);
-  const [layout, setLayout] = useState({
-    name: '2×2',
-    cols: 2,
-    rows: 2,
-    type: 'grid'
-  });
+  const [layout, setLayout] = useState(initialLayout);
   const [spacing, setSpacing] = useState(10);
   const [backgroundColor, setBackgroundColor] = useState('#F59E0B');
-  const [collageImages, setCollageImages] = useState([]);
+  const [collageImages, setCollageImages] = useState(Array(initialSlots).fill(null));
   const [roundness, setRoundness] = useState(20);
-  const fileInputRef = useRef(null); // This will now reference a real input
+  const [draggedImage, setDraggedImage] = useState(null);
+  const [dragOverIndex, setDragOverIndex] = useState(null);
+  const [pendingSlotIndex, setPendingSlotIndex] = useState(null); // 👈 NEW: track clicked slot
+  const fileInputRef = useRef(null);
   const colorPickerRef = useRef(null);
-  const location = useLocation();
 
-  // Theme classes based on prop
-  const bgPrimary = isDarkMode ? 'bg-[#111727]' : 'bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100';
-  const bgCard = isDarkMode ? 'bg-[#1a2332]' : 'bg-white';
+  // Theme classes
+  const bgPrimary = isDarkMode ? 'bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900' : 'bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50';
+  const bgCard = isDarkMode ? 'bg-gray-800/90 backdrop-blur-sm' : 'bg-white/90 backdrop-blur-sm';
   const textPrimary = isDarkMode ? 'text-white' : 'text-gray-900';
   const textSecondary = isDarkMode ? 'text-gray-300' : 'text-gray-700';
-  const textTertiary = isDarkMode ? 'text-gray-400' : 'text-gray-500';
-  const borderColor = isDarkMode ? 'border-gray-700' : 'border-gray-200';
-  const inputBg = isDarkMode ? 'bg-[#1f2937]' : 'bg-white';
-  const buttonBg = isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-800';
-  const adBg = isDarkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-100 border-blue-200';
-  const adText = isDarkMode ? 'text-blue-300' : 'text-blue-800';
-  const adSubText = isDarkMode ? 'text-blue-400' : 'text-blue-600';
-  const emptySlotBg = isDarkMode ? 'bg-[#1f2937]' : 'bg-gradient-to-br from-gray-50 to-gray-100';
-  const emptySlotHover = isDarkMode ? 'hover:bg-[#1a2332]' : 'hover:bg-gradient-to-br hover:from-gray-100 hover:to-gray-200';
+  const borderColor = isDarkMode ? 'border-gray-700' : 'border-purple-200';
+  const emptySlotBg = isDarkMode ? 'bg-gray-700/50' : 'bg-gradient-to-br from-purple-50 to-pink-50';
+  const emptySlotHover = isDarkMode ? 'hover:bg-gray-700' : 'hover:from-purple-100 hover:to-pink-100';
 
   const layouts = [
-    // Grid layouts
     { name: '1×1', cols: 1, rows: 1, type: 'grid' },
     { name: '1×2', cols: 1, rows: 2, type: 'grid' },
     { name: '2×1', cols: 2, rows: 1, type: 'grid' },
@@ -45,8 +36,6 @@ const CollageApp = ({ isDarkMode = false }) => {
     { name: '3×3', cols: 3, rows: 3, type: 'grid' },
     { name: '4×3', cols: 4, rows: 3, type: 'grid' },
     { name: '3×4', cols: 3, rows: 4, type: 'grid' },
-
-    // Freeform layouts
     {
       name: 'Overlap',
       type: 'freeform',
@@ -141,53 +130,157 @@ const CollageApp = ({ isDarkMode = false }) => {
     '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
   ];
 
+  // ✅ Updated handleFileUpload with slot assignment
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const newImage = {
-          id: Date.now() + Math.random(),
-          src: event.target.result,
-          name: file.name
-        };
-        setImages(prev => [...prev, newImage]);
-        addToCollage(newImage);
+    if (files.length === 0) return;
+
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const newImage = {
+        id: Math.random().toString(36).substr(2, 9),
+        src: event.target.result,
+        name: file.name
       };
-      reader.readAsDataURL(file);
-    });
+
+      // Always add to library
+      setImages(prev => [...prev, newImage]);
+
+      // If a slot was waiting, assign to it
+      if (pendingSlotIndex !== null) {
+        setCollageImages(prev => {
+          const updated = [...prev];
+          updated[pendingSlotIndex] = newImage;
+          return updated;
+        });
+        setPendingSlotIndex(null);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // Extra files go only to library
+    if (files.length > 1) {
+      files.slice(1).forEach(f => {
+        const r = new FileReader();
+        r.onload = (ev) => {
+          setImages(prev => [...prev, {
+            id: Math.random().toString(36).substr(2, 9),
+            src: ev.target.result,
+            name: f.name
+          }]);
+        };
+        r.readAsDataURL(f);
+      });
+    }
+
+    // Reset input
+    e.target.value = '';
   };
 
-  const addToCollage = (image) => {
-    if (layout.type === 'grid') {
-      const totalSlots = layout.cols * layout.rows;
-      if (collageImages.length < totalSlots) {
-        setCollageImages(prev => [...prev, image]);
-      }
-    } else {
-      if (collageImages.length < layout.positions.length) {
-        setCollageImages(prev => [...prev, image]);
-      }
-    }
-  };
+  const totalSlots = layout.type === 'grid'
+    ? layout.cols * layout.rows
+    : layout.positions?.length || 0;
 
   const removeFromCollage = (index, e) => {
     e.stopPropagation();
-    setCollageImages(prev => prev.filter((_, i) => i !== index));
+    setCollageImages(prev => {
+      const updated = [...prev];
+      updated[index] = null;
+      return updated;
+    });
   };
 
   const handleLayoutChange = (newLayout) => {
     setLayout(newLayout);
-    setCollageImages([]);
+    const newTotalSlots = newLayout.type === 'grid'
+      ? newLayout.cols * newLayout.rows
+      : newLayout.positions?.length || 0;
+
+    const newCollageImages = Array(newTotalSlots).fill(null);
+    for (let i = 0; i < Math.min(collageImages.length, newTotalSlots); i++) {
+      newCollageImages[i] = collageImages[i];
+    }
+    setCollageImages(newCollageImages);
   };
 
   const clearAll = () => {
-    setCollageImages([]);
+    const currentTotalSlots = layout.type === 'grid'
+      ? layout.cols * layout.rows
+      : layout.positions?.length || 0;
+    setCollageImages(Array(currentTotalSlots).fill(null));
     setImages([]);
   };
 
+  const handleDragStart = (e, image, fromIndex) => {
+    e.stopPropagation();
+    setDraggedImage({ image, fromIndex });
+    e.dataTransfer.effectAllowed = 'copyMove';
+    e.dataTransfer.setData('text/plain', '');
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverIndex(null);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleFileUpload({ target: { files } });
+      return;
+    }
+
+    if (!draggedImage) return;
+
+    const { image, fromIndex } = draggedImage;
+    setCollageImages(prev => {
+      const updated = [...prev];
+      if (fromIndex !== null && fromIndex !== undefined) {
+        updated[dropIndex] = updated[fromIndex];
+      } else {
+        updated[dropIndex] = image;
+      }
+      return updated;
+    });
+    setDraggedImage(null);
+  };
+
+  const handleCanvasDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleCanvasDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleFileUpload({ target: { files } });
+    }
+  };
+
+  // ✅ NEW: Handle slot click
+  const handleSlotClick = (index) => {
+    if (!collageImages[index]) {
+      setPendingSlotIndex(index);
+      fileInputRef.current?.click();
+    }
+  };
+
   const downloadCollage = async () => {
-    if (collageImages.length === 0) {
+    if (collageImages.every(img => !img)) {
       alert('Please upload images first!');
       return;
     }
@@ -206,11 +299,13 @@ const CollageApp = ({ isDarkMode = false }) => {
     const availableHeight = height - (2 * padding);
 
     const imagePromises = collageImages.map((imgData, index) => {
+      if (!imgData) return Promise.resolve();
+
       return new Promise((resolve) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
         img.onload = () => {
-          let x, y, cellWidth, cellHeight, rotation;
+          let x, y, cellWidth, cellHeight, rotation = 0;
 
           if (layout.type === 'grid') {
             const row = Math.floor(index / layout.cols);
@@ -219,13 +314,9 @@ const CollageApp = ({ isDarkMode = false }) => {
             cellHeight = (availableHeight - (spacing * (layout.rows - 1))) / layout.rows;
             x = padding + col * (cellWidth + spacing);
             y = padding + row * (cellHeight + spacing);
-            rotation = 0;
           } else {
             const pos = layout.positions[index];
-            if (!pos) {
-              resolve();
-              return;
-            }
+            if (!pos) return resolve();
             cellWidth = pos.width * availableWidth;
             cellHeight = pos.height * availableHeight;
             x = padding + pos.x * availableWidth;
@@ -236,7 +327,20 @@ const CollageApp = ({ isDarkMode = false }) => {
           ctx.save();
           ctx.translate(x + cellWidth / 2, y + cellHeight / 2);
           ctx.rotate(rotation * Math.PI / 180);
-          ctx.translate(-cellWidth / 2, -cellHeight / 2);
+          
+          ctx.beginPath();
+          const rad = roundness * (width / 1920);
+          ctx.moveTo(-cellWidth/2 + rad, -cellHeight/2);
+          ctx.lineTo(cellWidth/2 - rad, -cellHeight/2);
+          ctx.quadraticCurveTo(cellWidth/2, -cellHeight/2, cellWidth/2, -cellHeight/2 + rad);
+          ctx.lineTo(cellWidth/2, cellHeight/2 - rad);
+          ctx.quadraticCurveTo(cellWidth/2, cellHeight/2, cellWidth/2 - rad, cellHeight/2);
+          ctx.lineTo(-cellWidth/2 + rad, cellHeight/2);
+          ctx.quadraticCurveTo(-cellWidth/2, cellHeight/2, -cellWidth/2, cellHeight/2 - rad);
+          ctx.lineTo(-cellWidth/2, -cellHeight/2 + rad);
+          ctx.quadraticCurveTo(-cellWidth/2, -cellHeight/2, -cellWidth/2 + rad, -cellHeight/2);
+          ctx.closePath();
+          ctx.clip();
 
           const imgAspect = img.width / img.height;
           const cellAspect = cellWidth / cellHeight;
@@ -254,7 +358,7 @@ const CollageApp = ({ isDarkMode = false }) => {
             drawY = -(drawHeight - cellHeight) / 2;
           }
 
-          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          ctx.drawImage(img, x + drawX, y + drawY, drawWidth, drawHeight);
           ctx.restore();
           resolve();
         };
@@ -264,50 +368,67 @@ const CollageApp = ({ isDarkMode = false }) => {
 
     await Promise.all(imagePromises);
 
-    canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `collage-${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    });
+    const link = document.createElement('a');
+    link.download = `collage-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
-  const totalSlots = layout.type === 'grid'
-    ? layout.cols * layout.rows
-    : layout.positions?.length || 0;
 
   return (
     <div className={`min-h-screen ${bgPrimary} p-4 sm:p-6 transition-colors duration-300`}>
-      {/* Hidden file input — THIS FIXES THE ERROR */}
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileUpload}
         accept="image/*"
-        multiple
         className="hidden"
+        // Note: removed "multiple" to simplify slot assignment (optional)
       />
 
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Left Sidebar */}
-          <div className="lg:col-span-1 lg:h-[calc(150vh-200px)] lg:overflow-y-auto lg:pr-2 space-y-4">
+          <div className="lg:col-span-1 space-y-4">
+            {/* Image Library */}
+            {/* {images.length > 0 && (
+              <div className={`${bgCard} shadow-xl rounded-3xl p-5 border-2 ${borderColor}`}>
+                <h3 className={`text-lg font-bold mb-4 ${textPrimary} flex items-center gap-2`}>
+                  <ImagePlus className="w-5 h-5 text-purple-600" />
+                  Image Library ({images.length})
+                </h3>
+                <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                  {images.map((img) => (
+                    <div
+                      key={img.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, img, null)}
+                      className="relative aspect-square rounded-xl overflow-hidden cursor-move hover:scale-105 transition-transform shadow-lg border-2 border-purple-300"
+                    >
+                      <img
+                        src={img.src}
+                        alt={img.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )} */}
+
             {/* Action Buttons */}
-            <div className={`${bgCard} shadow-xl rounded-3xl p-5 sm:p-6 border-2 ${borderColor} space-y-3`}>
+            <div className={`${bgCard} shadow-xl rounded-3xl p-5 border-2 ${borderColor} space-y-3`}>
               <button
                 onClick={downloadCollage}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white px-5 sm:px-6 py-3 sm:py-4 rounded-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 font-bold"
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-4 rounded-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 font-bold"
               >
                 <Download className="w-5 h-5" />
-                Download
+                Download Collage
               </button>
               <button
                 onClick={clearAll}
-                className="w-full bg-gradient-to-r from-red-600 to-rose-600 text-white px-5 sm:px-6 py-3 sm:py-4 rounded-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 sm:gap-3 font-bold"
+                className="w-full bg-gradient-to-r from-red-600 to-rose-600 text-white px-6 py-4 rounded-2xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3 font-bold"
               >
                 <Trash2 className="w-5 h-5" />
                 Clear All
@@ -315,22 +436,22 @@ const CollageApp = ({ isDarkMode = false }) => {
             </div>
 
             {/* Layout Selection */}
-            <div className={`${bgCard} shadow-xl rounded-3xl p-5 sm:p-6 border-2 ${borderColor}`}>
-              <h3 className={`text-lg sm:text-xl font-bold mb-3 sm:mb-4 ${textPrimary} flex items-center gap-2`}>
-                <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+            <div className={`${bgCard} shadow-xl rounded-3xl p-5 border-2 ${borderColor}`}>
+              <h3 className={`text-lg font-bold mb-4 ${textPrimary} flex items-center gap-2`}>
+                <Layers className="w-5 h-5 text-purple-600" />
                 Layouts
               </h3>
-              <div className="grid grid-cols-3 gap-1 sm:gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {layouts.map((l, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleLayoutChange(l)}
-                    className={`px-2 sm:px-3 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 transform hover:scale-105 ${
+                    className={`px-3 py-3 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 ${
                       layout.name === l.name
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-105'
                         : isDarkMode 
                           ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
-                          : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                          : 'bg-purple-100 hover:bg-purple-200 text-purple-700'
                     }`}
                   >
                     {l.name}
@@ -339,10 +460,10 @@ const CollageApp = ({ isDarkMode = false }) => {
               </div>
             </div>
 
-            {/* Spacing Control */}
-            <div className={`${bgCard} shadow-xl rounded-3xl p-5 sm:p-6 border-2 ${borderColor}`}>
-              <h3 className={`text-lg sm:text-xl font-bold mb-3 sm:mb-4 ${textPrimary} flex items-center gap-2`}>
-                <Sliders className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+            {/* Controls */}
+            <div className={`${bgCard} shadow-xl rounded-3xl p-5 border-2 ${borderColor}`}>
+              <h3 className={`text-lg font-bold mb-4 ${textPrimary} flex items-center gap-2`}>
+                <Sliders className="w-5 h-5 text-purple-600" />
                 Spacing
               </h3>
               <input
@@ -351,19 +472,18 @@ const CollageApp = ({ isDarkMode = false }) => {
                 max="50"
                 value={spacing}
                 onChange={(e) => setSpacing(Number(e.target.value))}
-                className="w-full h-2 sm:h-3 bg-gradient-to-r from-purple-300 to-pink-300 rounded-full appearance-none cursor-pointer mb-3"
+                className="w-full h-3 bg-gradient-to-r from-purple-300 to-pink-300 rounded-full appearance-none cursor-pointer mb-3"
               />
               <div className="text-center">
-                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl font-bold text-sm sm:text-base">
+                <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2 rounded-xl font-bold">
                   {spacing}px
                 </span>
               </div>
             </div>
 
-            {/* Corner Radius Control */}
-            <div className={`${bgCard} shadow-xl rounded-3xl p-5 sm:p-6 border-2 ${borderColor}`}>
-              <h3 className={`text-lg sm:text-xl font-bold mb-3 sm:mb-4 ${textPrimary} flex items-center gap-2`}>
-                <RotateCw className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+            <div className={`${bgCard} shadow-xl rounded-3xl p-5 border-2 ${borderColor}`}>
+              <h3 className={`text-lg font-bold mb-4 ${textPrimary} flex items-center gap-2`}>
+                <RotateCw className="w-5 h-5 text-purple-600" />
                 Corner Radius
               </h3>
               <input
@@ -372,31 +492,31 @@ const CollageApp = ({ isDarkMode = false }) => {
                 max="50"
                 value={roundness}
                 onChange={(e) => setRoundness(Number(e.target.value))}
-                className="w-full h-2 sm:h-3 bg-gradient-to-r from-orange-300 to-red-300 rounded-full appearance-none cursor-pointer mb-3"
+                className="w-full h-3 bg-gradient-to-r from-orange-300 to-red-300 rounded-full appearance-none cursor-pointer mb-3"
               />
               <div className="text-center">
-                <span className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl font-bold text-sm sm:text-base">
+                <span className="bg-gradient-to-r from-orange-600 to-red-600 text-white px-4 py-2 rounded-xl font-bold">
                   {roundness}px
                 </span>
               </div>
             </div>
 
             {/* Background Color */}
-            <div className={`${bgCard} shadow-xl rounded-3xl p-5 sm:p-6 border-2 ${borderColor}`}>
-              <h3 className={`text-lg sm:text-xl font-bold mb-3 sm:mb-4 ${textPrimary} flex items-center gap-2`}>
-                <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+            <div className={`${bgCard} shadow-xl rounded-3xl p-5 border-2 ${borderColor}`}>
+              <h3 className={`text-lg font-bold mb-4 ${textPrimary} flex items-center gap-2`}>
+                <Palette className="w-5 h-5 text-purple-600" />
                 Background
               </h3>
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-center gap-2 sm:gap-3">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
                   <div
-                    className={`w-12 h-12 sm:w-16 sm:h-16 rounded-2xl shadow-lg border-3 ${borderColor} cursor-pointer transform hover:scale-105 transition-all duration-300`}
+                    className={`w-16 h-16 rounded-2xl shadow-lg border-3 ${borderColor} cursor-pointer transform hover:scale-105 transition-all duration-300`}
                     style={{ backgroundColor }}
                     onClick={() => colorPickerRef.current.click()}
                   />
                   <div>
-                    <div className={`text-xs sm:text-sm ${textSecondary} font-medium`}>Current</div>
-                    <div className={`font-bold ${textPrimary} text-sm sm:text-base`}>{backgroundColor}</div>
+                    <div className={`text-sm ${textSecondary} font-medium`}>Current</div>
+                    <div className={`font-bold ${textPrimary}`}>{backgroundColor}</div>
                   </div>
                 </div>
                 <input
@@ -406,14 +526,14 @@ const CollageApp = ({ isDarkMode = false }) => {
                   onChange={(e) => setBackgroundColor(e.target.value)}
                   className="hidden"
                 />
-                <div className="grid grid-cols-6 gap-1 sm:gap-2">
+                <div className="grid grid-cols-6 gap-2">
                   {colorPresets.map((color, idx) => (
                     <button
                       key={idx}
                       onClick={() => setBackgroundColor(color)}
-                      className={`h-8 sm:h-10 rounded-xl shadow-md hover:scale-105 transition-all duration-300 border-2 ${
+                      className={`h-10 rounded-xl shadow-md hover:scale-105 transition-all duration-300 border-2 ${
                         backgroundColor === color 
-                          ? 'border-purple-600 scale-105 ring-1 ring-purple-500' 
+                          ? 'border-purple-600 scale-105 ring-2 ring-purple-500' 
                           : borderColor
                       }`}
                       style={{ backgroundColor: color }}
@@ -426,10 +546,12 @@ const CollageApp = ({ isDarkMode = false }) => {
 
           {/* Main Canvas */}
           <div className="lg:col-span-3">
-            <div className={`${bgCard} shadow-2xl rounded-3xl p-6 sm:p-8 border-2 ${borderColor}`}>
+            <div className={`${bgCard} shadow-2xl rounded-3xl p-8 border-2 ${borderColor}`}>
               <div
-                className="w-full aspect-video rounded-2xl p-6 sm:p-8 transition-all duration-500 relative mx-auto"
-                style={{ backgroundColor, maxWidth: '100%' }}
+                className="w-full aspect-video rounded-2xl p-8 transition-all duration-500 relative mx-auto"
+                style={{ backgroundColor }}
+                onDragOver={handleCanvasDragOver}
+                onDrop={handleCanvasDrop}
               >
                 {layout.type === 'grid' ? (
                   <div
@@ -443,12 +565,13 @@ const CollageApp = ({ isDarkMode = false }) => {
                     {Array.from({ length: totalSlots }).map((_, index) => (
                       <div
                         key={index}
-                        onClick={() => {
-                          if (!collageImages[index] && fileInputRef.current) {
-                            fileInputRef.current.click();
-                          }
-                        }}
-                        className={`relative bg-opacity-90 shadow-xl overflow-hidden group transform hover:scale-105 transition-all duration-300 cursor-pointer ${isDarkMode ? 'bg-[#1f2937]' : 'bg-white'}`}
+                        onClick={() => handleSlotClick(index)} // ✅ Updated
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, index)}
+                        className={`relative shadow-xl overflow-hidden group transform hover:scale-105 transition-all duration-300 cursor-pointer ${
+                          dragOverIndex === index ? 'ring-4 ring-purple-500' : ''
+                        }`}
                         style={{ borderRadius: `${roundness}px` }}
                       >
                         {collageImages[index] ? (
@@ -456,19 +579,23 @@ const CollageApp = ({ isDarkMode = false }) => {
                             <img
                               src={collageImages[index].src}
                               alt={`Slot ${index + 1}`}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, collageImages[index], index)}
                               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />
                             <button
                               onClick={(e) => removeFromCollage(index, e)}
-                              className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-red-500 text-white p-1.5 sm:p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all duration-300 transform hover:scale-110 shadow-lg z-10"
+                              className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all duration-300 transform hover:scale-110 shadow-lg z-10"
                             >
-                              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                              <Trash2 className="w-5 h-5" />
                             </button>
                           </>
                         ) : (
                           <div className={`w-full h-full flex flex-col items-center justify-center transition-all duration-300 ${emptySlotBg} ${emptySlotHover}`}>
-                            <ImagePlus className="w-12 h-12 sm:w-16 sm:h-16 mb-1 sm:mb-2 animate-bounce" />
-                            <span className={`text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Click to Upload</span>
+                            <ImagePlus className="w-16 h-16 mb-2 animate-bounce text-purple-400" />
+                            <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-purple-600'}`}>
+                              Drop or Click
+                            </span>
                           </div>
                         )}
                       </div>
@@ -476,47 +603,49 @@ const CollageApp = ({ isDarkMode = false }) => {
                   </div>
                 ) : (
                   <div className="w-full h-full relative">
-                    {layout.positions.map((pos, index) => (
+                    {layout.positions.map((_, index) => (
                       <div
                         key={index}
                         className={`absolute transition-all duration-300 cursor-pointer ${
                           collageImages[index] ? 'group' : ''
-                        }`}
+                        } ${dragOverIndex === index ? 'ring-4 ring-purple-500' : ''}`}
                         style={{
-                          left: `${pos.x * 100}%`,
-                          top: `${pos.y * 100}%`,
-                          width: `${pos.width * 100}%`,
-                          height: `${pos.height * 100}%`,
-                          transform: `rotate(${pos.rotation || 0}deg)`,
-                          transformOrigin: 'center'
+                          left: `${layout.positions[index].x * 100}%`,
+                          top: `${layout.positions[index].y * 100}%`,
+                          width: `${layout.positions[index].width * 100}%`,
+                          height: `${layout.positions[index].height * 100}%`,
+                          transform: `rotate(${layout.positions[index].rotation || 0}deg)`,
+                          transformOrigin: 'center',
+                          zIndex: collageImages[index] ? 10 + index : 1
                         }}
-                        onClick={() => {
-                          if (!collageImages[index] && fileInputRef.current) {
-                            fileInputRef.current.click();
-                          }
-                        }}
+                        onClick={() => handleSlotClick(index)} // ✅ Updated
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, index)}
                       >
                         {collageImages[index] ? (
                           <>
                             <img
                               src={collageImages[index].src}
                               alt={`Freeform ${index + 1}`}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, collageImages[index], index)}
                               className="w-full h-full object-cover shadow-2xl transition-transform duration-500 group-hover:scale-105"
                               style={{ borderRadius: `${roundness}px` }}
                             />
                             <button
                               onClick={(e) => removeFromCollage(index, e)}
-                              className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-red-500 text-white p-1.5 sm:p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all duration-300 transform hover:scale-110 shadow-lg z-20"
+                              className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-red-600 transition-all duration-300 transform hover:scale-110 shadow-lg z-20"
                             >
-                              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                              <Trash2 className="w-5 h-5" />
                             </button>
                           </>
                         ) : (
                           <div className={`w-full h-full flex flex-col items-center justify-center ${emptySlotBg} ${emptySlotHover} shadow-xl transition-all duration-300`}
                             style={{ borderRadius: `${roundness}px` }}
                           >
-                            <ImagePlus className="w-12 h-12 sm:w-16 sm:h-16 mb-1 sm:mb-2 animate-bounce" />
-                            <span className={`text-xs sm:text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Click to Upload</span>
+                            <ImagePlus className="w-16 h-16 mb-2 animate-bounce text-purple-400" />
+                            <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-purple-600'}`}>Drop or Click</span>
                           </div>
                         )}
                       </div>
@@ -524,11 +653,11 @@ const CollageApp = ({ isDarkMode = false }) => {
                   </div>
                 )}
               </div>
-              <div className="mt-4 sm:mt-6 flex justify-center">
-                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-2xl shadow-lg">
-                  <Layers className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-bold text-sm sm:text-base">
-                    {collageImages.length} / {totalSlots} images
+              <div className="mt-6 flex justify-center">
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-2xl shadow-lg">
+                  <Layers className="w-5 h-5" />
+                  <span className="font-bold">
+                    {collageImages.filter(Boolean).length} / {totalSlots} images
                   </span>
                 </div>
               </div>
@@ -536,7 +665,6 @@ const CollageApp = ({ isDarkMode = false }) => {
           </div>
         </div>
       </div>
-      <Footer currentPage={location.pathname} isDarkMode={isDarkMode} />
     </div>
   );
 };
