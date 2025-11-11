@@ -159,63 +159,6 @@ export default function MediaCompressor({ isDarkMode = false }) {
     });
   };
 
-  // const compressVideo = async () => {
-  //   setIsCompressing(true);
-  //   try {
-  //     const video = document.createElement('video');
-  //     video.src = URL.createObjectURL(file);
-  //     video.muted = true;
-
-  //     await new Promise((resolve) => {
-  //       video.onloadedmetadata = async () => {
-  //         const canvas = document.createElement('canvas');
-  //         let width = video.videoWidth;
-  //         let height = video.videoHeight;
-  //         const scaleFactor = quality / 100;
-  //         const maxDimension = 1280 * scaleFactor;
-
-  //         if (width > maxDimension || height > maxDimension) {
-  //           if (width > height) {
-  //             height = (height / width) * maxDimension;
-  //             width = maxDimension;
-  //           } else {
-  //             width = (width / height) * maxDimension;
-  //             height = maxDimension;
-  //           }
-  //         }
-
-  //         canvas.width = width;
-  //         canvas.height = height;
-  //         const ctx = canvas.getContext('2d');
-  //         video.currentTime = 0;
-
-  //         await new Promise((seekResolve) => {
-  //           video.onseeked = () => {
-  //             ctx.drawImage(video, 0, 0, width, height);
-  //             canvas.toBlob(() => {
-  //               const reader = new FileReader();
-  //               reader.onload = () => {
-  //                 const qualityFactor = quality / 100;
-  //                 const estimatedSize = Math.floor(originalSize * qualityFactor * 0.7);
-  //                 const videoBlob = new Blob([file], { type: file.type });
-  //                 setCompressedSize(estimatedSize);
-  //                 setCompressedBlob(videoBlob);
-  //                 setCompressedUrl(URL.createObjectURL(videoBlob));
-  //                 setIsCompressing(false);
-  //                 seekResolve();
-  //                 resolve();
-  //               };
-  //               reader.readAsArrayBuffer(file);
-  //             }, 'image/jpeg', quality / 100);
-  //           };
-  //         });
-  //       };
-  //     });
-  //   } catch (error) {
-  //     console.error('Video compression error:', error);
-  //     setIsCompressing(false);
-  //   }
-  // };
 
   const handleCompress = () => {
     if (fileType === 'image') compressImage();
