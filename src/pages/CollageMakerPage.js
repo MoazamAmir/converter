@@ -126,7 +126,7 @@ const CollageApp = ({ isDarkMode = false }) => {
   ];
 
   const colorPresets = [
-    '#000000', '#FFFFFF', '#F59E0B', '#EF4444', '#10B981', '#3B82F6', 
+    '#000000', '#FFFFFF', '#F59E0B', '#EF4444', '#10B981', '#3B82F6',
     '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
   ];
 
@@ -279,102 +279,114 @@ const CollageApp = ({ isDarkMode = false }) => {
     }
   };
 
-  const downloadCollage = async () => {
-    if (collageImages.every(img => !img)) {
-      alert('Please upload images first!');
-      return;
+ const downloadCollage = async () => {
+  if (collageImages.every(img => !img)) {
+    alert('Please upload images first!');
+    return;
+  }
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  const width = 1920;
+  const height = 1080;
+  canvas.width = width;
+  canvas.height = height;
+  ctx.fillStyle = backgroundColor;
+  ctx.fillRect(0, 0, width, height);
+
+  const padding = 80;
+  const availableWidth = width - (2 * padding);
+  const availableHeight = height - (2 * padding);
+
+  // Pre-load all images using createImageBitmap
+  const imageBitmaps = await Promise.all(
+    collageImages.map(async (imgData) => {
+      if (!imgData) return null;
+
+      try {
+        const response = await fetch(imgData.src);
+        const blob = await response.blob();
+        return await createImageBitmap(blob);
+      } catch (e) {
+        console.error('Failed to load image:', e);
+        return null;
+      }
+    })
+  );
+
+  // Draw images to canvas
+  imageBitmaps.forEach((imgBitmap, index) => {
+    if (!imgBitmap) return;
+
+    let x, y, cellWidth, cellHeight, rotation = 0;
+
+    if (layout.type === 'grid') {
+      const row = Math.floor(index / layout.cols);
+      const col = index % layout.cols;
+      cellWidth = (availableWidth - (spacing * (layout.cols - 1))) / layout.cols;
+      cellHeight = (availableHeight - (spacing * (layout.rows - 1))) / layout.rows;
+      x = padding + col * (cellWidth + spacing);
+      y = padding + row * (cellHeight + spacing);
+    } else {
+      const pos = layout.positions[index];
+      if (!pos) return;
+      cellWidth = pos.width * availableWidth;
+      cellHeight = pos.height * availableHeight;
+      x = padding + pos.x * availableWidth;
+      y = padding + pos.y * availableHeight;
+      rotation = pos.rotation || 0;
     }
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const width = 1920;
-    const height = 1080;
-    canvas.width = width;
-    canvas.height = height;
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, width, height);
+    ctx.save();
+    ctx.translate(x + cellWidth / 2, y + cellHeight / 2);
+    ctx.rotate(rotation * Math.PI / 180);
 
-    const padding = 80;
-    const availableWidth = width - (2 * padding);
-    const availableHeight = height - (2 * padding);
+    // Create rounded rectangle path
+    ctx.beginPath();
+    const rad = roundness * (width / 1920);
+    ctx.moveTo(-cellWidth / 2 + rad, -cellHeight / 2);
+    ctx.lineTo(cellWidth / 2 - rad, -cellHeight / 2);
+    ctx.quadraticCurveTo(cellWidth / 2, -cellHeight / 2, cellWidth / 2, -cellHeight / 2 + rad);
+    ctx.lineTo(cellWidth / 2, cellHeight / 2 - rad);
+    ctx.quadraticCurveTo(cellWidth / 2, cellHeight / 2, cellWidth / 2 - rad, cellHeight / 2);
+    ctx.lineTo(-cellWidth / 2 + rad, cellHeight / 2);
+    ctx.quadraticCurveTo(-cellWidth / 2, cellHeight / 2, -cellWidth / 2, cellHeight / 2 - rad);
+    ctx.lineTo(-cellWidth / 2, -cellHeight / 2 + rad);
+    ctx.quadraticCurveTo(-cellWidth / 2, -cellHeight / 2, -cellWidth / 2 + rad, -cellHeight / 2);
+    ctx.closePath();
+    ctx.clip();
 
-    const imagePromises = collageImages.map((imgData, index) => {
-      if (!imgData) return Promise.resolve();
+    // Calculate image position to maintain aspect ratio and fill the cell
+    const imgAspect = imgBitmap.width / imgBitmap.height;
+    const cellAspect = cellWidth / cellHeight;
+    let drawWidth, drawHeight, drawX, drawY;
 
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          let x, y, cellWidth, cellHeight, rotation = 0;
+    if (imgAspect > cellAspect) {
+      // Image is wider than cell - fill height
+      drawHeight = cellHeight;
+      drawWidth = drawHeight * imgAspect;
+      drawX = -drawWidth / 2;
+      drawY = -drawHeight / 2;
+    } else {
+      // Image is taller than cell - fill width
+      drawWidth = cellWidth;
+      drawHeight = drawWidth / imgAspect;
+      drawX = -drawWidth / 2;
+      drawY = -drawHeight / 2;
+    }
 
-          if (layout.type === 'grid') {
-            const row = Math.floor(index / layout.cols);
-            const col = index % layout.cols;
-            cellWidth = (availableWidth - (spacing * (layout.cols - 1))) / layout.cols;
-            cellHeight = (availableHeight - (spacing * (layout.rows - 1))) / layout.rows;
-            x = padding + col * (cellWidth + spacing);
-            y = padding + row * (cellHeight + spacing);
-          } else {
-            const pos = layout.positions[index];
-            if (!pos) return resolve();
-            cellWidth = pos.width * availableWidth;
-            cellHeight = pos.height * availableHeight;
-            x = padding + pos.x * availableWidth;
-            y = padding + pos.y * availableHeight;
-            rotation = pos.rotation || 0;
-          }
+    // Draw the image
+    ctx.drawImage(imgBitmap, drawX, drawY, drawWidth, drawHeight);
+    ctx.restore();
+  });
 
-          ctx.save();
-          ctx.translate(x + cellWidth / 2, y + cellHeight / 2);
-          ctx.rotate(rotation * Math.PI / 180);
-          
-          ctx.beginPath();
-          const rad = roundness * (width / 1920);
-          ctx.moveTo(-cellWidth/2 + rad, -cellHeight/2);
-          ctx.lineTo(cellWidth/2 - rad, -cellHeight/2);
-          ctx.quadraticCurveTo(cellWidth/2, -cellHeight/2, cellWidth/2, -cellHeight/2 + rad);
-          ctx.lineTo(cellWidth/2, cellHeight/2 - rad);
-          ctx.quadraticCurveTo(cellWidth/2, cellHeight/2, cellWidth/2 - rad, cellHeight/2);
-          ctx.lineTo(-cellWidth/2 + rad, cellHeight/2);
-          ctx.quadraticCurveTo(-cellWidth/2, cellHeight/2, -cellWidth/2, cellHeight/2 - rad);
-          ctx.lineTo(-cellWidth/2, -cellHeight/2 + rad);
-          ctx.quadraticCurveTo(-cellWidth/2, -cellHeight/2, -cellWidth/2 + rad, -cellHeight/2);
-          ctx.closePath();
-          ctx.clip();
-
-          const imgAspect = img.width / img.height;
-          const cellAspect = cellWidth / cellHeight;
-          let drawWidth, drawHeight, drawX, drawY;
-
-          if (imgAspect > cellAspect) {
-            drawHeight = cellHeight;
-            drawWidth = drawHeight * imgAspect;
-            drawX = -(drawWidth - cellWidth) / 2;
-            drawY = 0;
-          } else {
-            drawWidth = cellWidth;
-            drawHeight = drawWidth / imgAspect;
-            drawX = 0;
-            drawY = -(drawHeight - cellHeight) / 2;
-          }
-
-          ctx.drawImage(img, x + drawX, y + drawY, drawWidth, drawHeight);
-          ctx.restore();
-          resolve();
-        };
-        img.src = imgData.src;
-      });
-    });
-
-    await Promise.all(imagePromises);
-
-    const link = document.createElement('a');
-    link.download = `collage-${Date.now()}.png`;
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const link = document.createElement('a');
+  link.download = `collage-${Date.now()}.png`;
+  link.href = canvas.toDataURL('image/png');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
   return (
     <div className={`min-h-screen ${bgPrimary} p-4 sm:p-6 transition-colors duration-300`}>
@@ -384,7 +396,7 @@ const CollageApp = ({ isDarkMode = false }) => {
         onChange={handleFileUpload}
         accept="image/*"
         className="hidden"
-        // Note: removed "multiple" to simplify slot assignment (optional)
+      // Note: removed "multiple" to simplify slot assignment (optional)
       />
 
       <div className="max-w-7xl mx-auto">
@@ -446,13 +458,12 @@ const CollageApp = ({ isDarkMode = false }) => {
                   <button
                     key={idx}
                     onClick={() => handleLayoutChange(l)}
-                    className={`px-3 py-3 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 ${
-                      layout.name === l.name
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-105'
-                        : isDarkMode 
-                          ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' 
-                          : 'bg-purple-100 hover:bg-purple-200 text-purple-700'
-                    }`}
+                    className={`px-3 py-3 rounded-xl text-sm font-bold transition-all duration-300 transform hover:scale-105 ${layout.name === l.name
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg scale-105'
+                      : isDarkMode
+                        ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                        : 'bg-purple-100 hover:bg-purple-200 text-purple-700'
+                      }`}
                   >
                     {l.name}
                   </button>
@@ -531,11 +542,10 @@ const CollageApp = ({ isDarkMode = false }) => {
                     <button
                       key={idx}
                       onClick={() => setBackgroundColor(color)}
-                      className={`h-10 rounded-xl shadow-md hover:scale-105 transition-all duration-300 border-2 ${
-                        backgroundColor === color 
-                          ? 'border-purple-600 scale-105 ring-2 ring-purple-500' 
-                          : borderColor
-                      }`}
+                      className={`h-10 rounded-xl shadow-md hover:scale-105 transition-all duration-300 border-2 ${backgroundColor === color
+                        ? 'border-purple-600 scale-105 ring-2 ring-purple-500'
+                        : borderColor
+                        }`}
                       style={{ backgroundColor: color }}
                     />
                   ))}
@@ -565,13 +575,12 @@ const CollageApp = ({ isDarkMode = false }) => {
                     {Array.from({ length: totalSlots }).map((_, index) => (
                       <div
                         key={index}
-                        onClick={() => handleSlotClick(index)} // ✅ Updated
+                        onClick={() => handleSlotClick(index)} // Updated
                         onDragOver={(e) => handleDragOver(e, index)}
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, index)}
-                        className={`relative shadow-xl overflow-hidden group transform hover:scale-105 transition-all duration-300 cursor-pointer ${
-                          dragOverIndex === index ? 'ring-4 ring-purple-500' : ''
-                        }`}
+                        className={`relative shadow-xl overflow-hidden group transform hover:scale-105 transition-all duration-300 cursor-pointer ${dragOverIndex === index ? 'ring-4 ring-purple-500' : ''
+                          }`}
                         style={{ borderRadius: `${roundness}px` }}
                       >
                         {collageImages[index] ? (
@@ -606,9 +615,8 @@ const CollageApp = ({ isDarkMode = false }) => {
                     {layout.positions.map((_, index) => (
                       <div
                         key={index}
-                        className={`absolute transition-all duration-300 cursor-pointer ${
-                          collageImages[index] ? 'group' : ''
-                        } ${dragOverIndex === index ? 'ring-4 ring-purple-500' : ''}`}
+                        className={`absolute transition-all duration-300 cursor-pointer ${collageImages[index] ? 'group' : ''
+                          } ${dragOverIndex === index ? 'ring-4 ring-purple-500' : ''}`}
                         style={{
                           left: `${layout.positions[index].x * 100}%`,
                           top: `${layout.positions[index].y * 100}%`,
