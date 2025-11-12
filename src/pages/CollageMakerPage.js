@@ -13,7 +13,7 @@ const CollageApp = ({ isDarkMode = false }) => {
   const [roundness, setRoundness] = useState(20);
   const [draggedImage, setDraggedImage] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
-  const [pendingSlotIndex, setPendingSlotIndex] = useState(null); 
+  const [pendingSlotIndex, setPendingSlotIndex] = useState(null);
   const [isDraggingOverLibrary, setIsDraggingOverLibrary] = useState(false);
   const fileInputRef = useRef(null);
   const colorPickerRef = useRef(null);
@@ -408,8 +408,8 @@ const CollageApp = ({ isDarkMode = false }) => {
                 key={l.name}
                 onClick={() => handleLayoutChange(l)}
                 className={`p-3 rounded-xl border-2 transition ${layout.name === l.name
-                    ? 'border-purple-500 ring-4 ring-purple-500/30'
-                    : `${borderColor} hover:border-purple-500`
+                  ? 'border-purple-500 ring-4 ring-purple-500/30'
+                  : `${borderColor} hover:border-purple-500`
                   } ${bgCard} ${textPrimary} text-sm font-medium`}
               >
                 {l.name}
