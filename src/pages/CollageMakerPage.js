@@ -588,6 +588,7 @@ const CollageApp = ({ isDarkMode = false }) => {
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </>
+                        // njhghfbg
                       ) : (
                         <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
                           <ImagePlus className={`w-8 h-8 ${textSecondary}`} />
