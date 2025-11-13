@@ -175,12 +175,15 @@ export default function useConverter() {
 
     await imgLoadPromise;
 
+    // Preserve original dimensions unless resizing is specifically requested
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
+    // Use original dimensions by default
     let targetWidth = img.width;
     let targetHeight = img.height;
 
+    // Only apply resize if user has selected a custom resize option
     if (settings.resize === 'custom' && settings.width && settings.height) {
       targetWidth = parseInt(settings.width, 10);
       targetHeight = parseInt(settings.height, 10);
@@ -192,9 +195,17 @@ export default function useConverter() {
 
     canvas.width = targetWidth;
     canvas.height = targetHeight;
-    ctx.fillStyle = settings.bgColor;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+    // For formats that support transparency, use transparent background
+    if (['png', 'webp', 'gif', 'tiff'].includes(outputFormat.toLowerCase())) {
+      // For transparent formats, don't fill background
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+    } else {
+      // For non-transparent formats, use background color
+      ctx.fillStyle = settings.bgColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+    }
 
     const format = outputFormat.toLowerCase();
 
