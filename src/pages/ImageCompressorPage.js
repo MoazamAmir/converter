@@ -1,10 +1,7 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Image, Video, Download, X, Loader2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import Footer from '../components/Footer';
-
-
 export default function MediaCompressor({ isDarkMode = false }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -14,12 +11,11 @@ export default function MediaCompressor({ isDarkMode = false }) {
   const [compressedSize, setCompressedSize] = useState(0);
   const [compressedUrl, setCompressedUrl] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
-  const [quality, setQuality] = useState(85);
+  const [quality, setQuality] = useState(80);
   const [compressedBlob, setCompressedBlob] = useState(null);
   const fileInputRef = useRef(null);
   const location = useLocation();
-
-  // ✅ Theme-aware classes
+  // Theme-aware classes
   const bgPrimary = isDarkMode ? 'bg-[#111727]' : 'bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100';
   const bgCard = isDarkMode ? 'bg-[#1a2332]' : 'bg-white';
   const textPrimary = isDarkMode ? 'text-white' : 'text-gray-900';
@@ -51,7 +47,6 @@ export default function MediaCompressor({ isDarkMode = false }) {
     setCompressedBlob(null);
   };
 
-  // ✅ Drag & Drop handlers
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
@@ -109,56 +104,167 @@ export default function MediaCompressor({ isDarkMode = false }) {
         const img = document.createElement('img');
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const maxDimension = 2560;
+          
+          // Detect original format
+          const isPNG = file.type === 'image/png';
+          const isJPEG = file.type === 'image/jpeg' || file.type === 'image/jpg';
+          const isWEBP = file.type === 'image/webp';
+          
+          const ctx = canvas.getContext('2d', { alpha: isPNG });
 
+          // Keep original dimensions for better quality
+          let { width, height } = img;
+          
+          // Only resize if image is extremely large (over 4K)
+          const maxDimension = 3840;
           if (width > maxDimension || height > maxDimension) {
-            if (width > height) {
-              height = (height / width) * maxDimension;
-              width = maxDimension;
-            } else {
-              width = (width / height) * maxDimension;
-              height = maxDimension;
-            }
+            const scale = Math.min(maxDimension / width, maxDimension / height);
+            width = Math.round(width * scale);
+            height = Math.round(height * scale);
           }
 
           canvas.width = width;
           canvas.height = height;
-          const ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: false });
+
+          // Handle transparency/background based on format
+          if (isPNG) {
+            ctx.clearRect(0, 0, width, height);
+          } else if (isJPEG) {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+          }
+
+          // Enable high-quality image smoothing
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
+
+          // Draw image
           ctx.drawImage(img, 0, 0, width, height);
 
-          let mimeType = file.type;
-          if (!mimeType.startsWith('image/')) mimeType = 'image/jpeg';
-
-          if (mimeType === 'image/png') {
-            canvas.toBlob((blob) => {
-              setCompressedSize(blob.size);
-              setCompressedBlob(blob);
-              const url = URL.createObjectURL(blob);
-              setCompressedUrl(url);
-              setIsCompressing(false);
-              resolve();
-            }, 'image/png');
+          // Maintain original format
+          let outputMimeType = file.type;
+          if (isPNG) {
+            outputMimeType = 'image/png';
+          } else if (isJPEG) {
+            outputMimeType = 'image/jpeg';
+          } else if (isWEBP) {
+            outputMimeType = 'image/webp';
           } else {
-            canvas.toBlob((blob) => {
-              setCompressedSize(blob.size);
-              setCompressedBlob(blob);
-              const url = URL.createObjectURL(blob);
-              setCompressedUrl(url);
+            // Default to JPEG for unknown formats
+            outputMimeType = 'image/jpeg';
+          }
+
+          // For PNG: Use aggressive compression strategies
+           if (isPNG) {
+            // Try multiple compression attempts with different strategies
+            const attemptPNGCompression = async () => {
+              let pngWidth = width;
+              let pngHeight = height;
+              
+              // PNG ke liye scale factors try karo
+              const scalingAttempts = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3];
+              
+              for (let scale of scalingAttempts) {
+                pngWidth = Math.round(width * scale);
+                pngHeight = Math.round(height * scale);
+                
+                // Create new canvas with scaled dimensions
+                const pngCanvas = document.createElement('canvas');
+                pngCanvas.width = pngWidth;
+                pngCanvas.height = pngHeight;
+                const pngCtx = pngCanvas.getContext('2d', { alpha: true });
+                
+                pngCtx.clearRect(0, 0, pngWidth, pngHeight);
+                pngCtx.imageSmoothingEnabled = true;
+                pngCtx.imageSmoothingQuality = 'high';
+                pngCtx.drawImage(img, 0, 0, pngWidth, pngHeight);
+                
+                // Convert to blob
+                const blob = await new Promise(resolve => {
+                  pngCanvas.toBlob(resolve, 'image/png');
+                });
+                
+                // Agar compressed size original se chhoti ho gai to use karo
+                if (blob && blob.size < originalSize) {
+                  setCompressedSize(blob.size);
+                  setCompressedBlob(blob);
+                  setCompressedUrl(URL.createObjectURL(blob));
+                  setIsCompressing(false);
+                  resolve();
+                  return;
+                }
+              }
+              
+              // Agar koi bhi scaling se compress nahi hua to original file use karo
+              setCompressedSize(originalSize);
+              setCompressedBlob(file);
+              setCompressedUrl(URL.createObjectURL(file));
               setIsCompressing(false);
               resolve();
-            }, 'image/jpeg', quality / 100);
+            };
+            
+            attemptPNGCompression();
+          } else {
+            // For JPEG/WebP: Use standard compression
+            let outputQuality = Math.max(0.7, quality / 100);
+            
+            const tryCompress = (currentQuality) => {
+              canvas.toBlob(
+                (blob) => {
+                  if (!blob) {
+                    setCompressedSize(originalSize);
+                    setCompressedBlob(file);
+                    setCompressedUrl(URL.createObjectURL(file));
+                    setIsCompressing(false);
+                    resolve();
+                    return;
+                  }
+
+                  // If compressed size is larger, try with lower quality
+                  if (blob.size >= originalSize && currentQuality > 0.3) {
+                    tryCompress(currentQuality - 0.1);
+                    return;
+                  }
+
+                  // Check if compression was successful
+                  if (blob.size >= originalSize) {
+                    setCompressedSize(originalSize);
+                    setCompressedBlob(file);
+                    setCompressedUrl(URL.createObjectURL(file));
+                  } else {
+                    setCompressedSize(blob.size);
+                    setCompressedBlob(blob);
+                    setCompressedUrl(URL.createObjectURL(blob));
+                  }
+                  
+                  setIsCompressing(false);
+                  resolve();
+                },
+                outputMimeType,
+                currentQuality
+              );
+            };
+            
+            tryCompress(outputQuality);
           }
         };
+        
+        img.onerror = () => {
+          setIsCompressing(false);
+          alert('Image load karne mein error ayi!');
+          resolve();
+        };
         img.src = e.target.result;
+      };
+      
+      reader.onerror = () => {
+        setIsCompressing(false);
+        alert('File read karne mein error ayi!');
+        resolve();
       };
       reader.readAsDataURL(file);
     });
   };
-
 
   const handleCompress = () => {
     if (fileType === 'image') compressImage();
@@ -167,16 +273,27 @@ export default function MediaCompressor({ isDarkMode = false }) {
 
   const handleDownload = () => {
     if (!compressedBlob) return;
+
     const a = document.createElement('a');
     const url = URL.createObjectURL(compressedBlob);
     a.href = url;
 
-    if (fileType === 'image') {
-      const extension = file.type === 'image/png' ? 'png' : 'jpg';
-      const nameWithoutExt = file.name.split('.').slice(0, -1).join('.');
-      a.download = `compressed_${nameWithoutExt}.${extension}`;
+    // Get file extension from original file or blob type
+    let extension = file.name.split('.').pop().toLowerCase();
+    
+    // If compressed blob is same as original, keep original name
+    if (compressedSize >= originalSize) {
+      a.download = file.name;
     } else {
-      const extension = file.name.split('.').pop();
+      // Use appropriate extension based on blob type
+      if (compressedBlob.type === 'image/png') {
+        extension = 'png';
+      } else if (compressedBlob.type === 'image/jpeg') {
+        extension = 'jpg';
+      } else if (compressedBlob.type === 'image/webp') {
+        extension = 'webp';
+      }
+      
       const nameWithoutExt = file.name.split('.').slice(0, -1).join('.');
       a.download = `compressed_${nameWithoutExt}.${extension}`;
     }
@@ -211,12 +328,30 @@ export default function MediaCompressor({ isDarkMode = false }) {
   }, [compressedUrl]);
 
   const features = [
-    { title: 'Perfect Quality', description: 'We intelligently apply compression to retain image quality while drastically reducing image size.' },
-    { title: 'Best Compression', description: 'Compress your images by up to 80% or more by applying lossy compression and other optimizations.' },
-    { title: 'Easy To Use', description: 'Simply upload your images and watch our tool do its magic. Even large images are compressed within seconds' },
-    { title: 'Image Formats', description: 'Our image compressor can compress JPEG and PNG images. You can compress up to 50 images at a time.' },
-    { title: 'Privacy Guaranteed', description: 'We care about file privacy. Images are uploaded via a secure 256-bit encrypted SSL connection and deleted automatically within 6 hours.' },
-    { title: 'It’s Free', description: 'Since 2012 we have compressed millions of images for free! There is no software to install, registrations, or watermarks.' },
+    {
+      title: 'Perfect Quality',
+      description: 'We intelligently apply compression to retain image quality while drastically reducing image size.'
+    },
+    {
+      title: 'Best Compression',
+      description: 'Compress your images by up to 80% or more by applying lossy compression and other optimizations.'
+    },
+    {
+      title: 'Easy To Use',
+      description: 'Simply upload your images and watch our tool do its magic. Even large images are compressed within seconds'
+    },
+    {
+      title: 'Image Formats',
+      description: 'Our image compressor can compress JPEG and PNG images. You can compress up to 50 images at a time.'
+    },
+    {
+      title: 'Privacy Guaranteed',
+      description: 'We care about file privacy. Images are uploaded via a secure 256-bit encrypted SSL connection and deleted automatically within 6 hours.'
+    },
+    {
+      title: "It's Free",
+      description: 'Since 2012 we have compressed millions of images for free! There is no software to install, registrations, or watermarks.'
+    },
   ];
 
   return (
@@ -247,20 +382,21 @@ export default function MediaCompressor({ isDarkMode = false }) {
                       onDragOver={handleDragOver}
                       onDragLeave={handleDragLeave}
                       onDrop={handleDrop}
-                      className={`border-4 border-dashed rounded-lg p-16 transition-all duration-300 cursor-pointer ${isDragging
-                        ? isDarkMode
-                          ? 'border-blue-400 bg-blue-900/20'
-                          : 'border-blue-500 bg-blue-50'
-                        : isDarkMode
+                      className={`border-4 border-dashed rounded-lg p-16 transition-all duration-300 cursor-pointer ${
+                        isDragging
+                          ? isDarkMode
+                            ? 'border-blue-400 bg-blue-900/20'
+                            : 'border-blue-500 bg-blue-50'
+                          : isDarkMode
                           ? 'border-white/20'
-                          : 'border-white/30'
-                        }`}
+                            : 'border-white/30'
+                      }`}
                     >
                       <input
                         type="file"
                         ref={fileInputRef}
-                        onChange={handleFileSelect} // ✅ Fixed!
-                        accept="image/*,video/*"     // ✅ Also allow video for consistency
+                        onChange={handleFileSelect}
+                        accept="image/*,video/*"
                         className="hidden"
                       />
                       <Upload className={`w-16 h-16 mx-auto mb-4 ${isDarkMode ? 'text-purple-400' : 'text-purple-500'}`} />
@@ -274,9 +410,9 @@ export default function MediaCompressor({ isDarkMode = false }) {
                         Max file size: 10 MB. <span className="underline cursor-pointer">Sign up</span> for more.
                       </p>
                     </div>
-
                   </div>
                 </div>
+
                 <div className="mt-16 max-w-7xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {features.map((item, index) => (
@@ -285,9 +421,6 @@ export default function MediaCompressor({ isDarkMode = false }) {
                         className={`p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border ${borderColor} ${bgCard}`}
                       >
                         <div className="flex flex-col items-center">
-                          {/* <div className={textPrimary}>
-                            {React.cloneElement(item.icon, { className: `w-10 h-10 mb-4 ${textPrimary}` })}
-                          </div> */}
                           <h3 className={`text-lg font-semibold mb-2 ${textPrimary}`}>{item.title}</h3>
                           <p className={`text-sm leading-relaxed ${textTertiary}`}>{item.description}</p>
                         </div>
@@ -295,39 +428,41 @@ export default function MediaCompressor({ isDarkMode = false }) {
                     ))}
                   </div>
                 </div>
-                <div className={`mt-8 sm:mt-12 ${bgCard} rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 transition-opacity duration-700 opacity-100 `}>
+
+                <div className={`mt-8 sm:mt-12 ${bgCard} rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-8 transition-opacity duration-700 opacity-100`}>
                   <h2 className="text-2xl sm:text-3xl font-bold mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-                    <span className="text-2xl sm:text-3xl">❓</span>
-                    How to Compressor Images?
+                    <span className="text-2xl sm:text-3xl">❓</span> How to Compress Images?
                   </h2>
                   <div className="space-y-3 sm:space-y-4">
                     <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg sm:rounded-xl hover-lift">
                       <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">1</span>
                       <div>
-                        <p className="text-gray-700 text-sm sm:text-base">Click the <span className="font-bold text-indigo-600">"Add More Files"</span> button and select from Device, Dropbox, Google Drive, OneDrive, or URL.</p>
+                        <p className="text-gray-700 text-sm sm:text-base">Click the <span className="font-bold text-indigo-600">"Upload or Drop Image"</span> button and select your image from your device.</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg sm:rounded-xl hover-lift">
                       <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">2</span>
                       <div>
-                        <p className="text-gray-700 text-sm sm:text-base">Select a target image format from the <span className="font-bold text-purple-600">"Output"</span> drop-down list.</p>
+                        <p className="text-gray-700 text-sm sm:text-base">Adjust the <span className="font-bold text-purple-600">"Compression Quality"</span> slider to your desired level.</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg sm:rounded-xl hover-lift">
                       <span className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm sm:text-base">3</span>
                       <div>
-                        <p className="text-gray-700 text-sm sm:text-base">Click on the <span className="font-bold text-green-600">"Convert"</span> button to start the conversion.</p>
+                        <p className="text-gray-700 text-sm sm:text-base">Click on the <span className="font-bold text-green-600">"Compress Now"</span> button and download your compressed image.</p>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
               {/* Sidebar Ads */}
               <div className="hidden lg:block absolute left-4 top-[390px]">
                 <div className={`rounded-lg p-4 w-[110px] h-[500px] shadow-md border ${adBg}`}>
                   <p className={`text-xs mt-2 rotate-90 whitespace-nowrap ${adSubText}`}>Left Skyscraper Banner</p>
                 </div>
               </div>
+
               <div className="hidden lg:block absolute right-4 top-[390px]">
                 <div className={`rounded-lg p-4 w-[110px] h-[500px] shadow-md border ${adBg}`}>
                   <p className={`text-xs mt-2 rotate-90 whitespace-nowrap ${adSubText}`}>Right Skyscraper Banner</p>
@@ -353,7 +488,9 @@ export default function MediaCompressor({ isDarkMode = false }) {
                   </h3>
                   <button
                     onClick={handleReset}
-                    className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                    className={`p-2 rounded-lg transition-colors ${
+                      isDarkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
+                    }`}
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -408,6 +545,7 @@ export default function MediaCompressor({ isDarkMode = false }) {
                     {formatFileSize(originalSize)}
                   </p>
                 </div>
+
                 <div className={`${isDarkMode ? 'bg-green-900/30' : 'bg-green-50'} rounded-xl p-4`}>
                   <p className={`text-sm ${isDarkMode ? 'text-green-300' : 'text-green-600'} mb-1`}>Compressed Size</p>
                   <p className={`text-2xl font-bold ${isDarkMode ? 'text-green-300' : 'text-green-700'}`}>
@@ -458,7 +596,9 @@ export default function MediaCompressor({ isDarkMode = false }) {
                     </button>
                     <button
                       onClick={handleReset}
-                      className={`px-6 py-4 rounded-xl font-semibold text-lg ${isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'} transition-all duration-300`}
+                      className={`px-6 py-4 rounded-xl font-semibold text-lg ${
+                        isDarkMode ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      } transition-all duration-300`}
                     >
                       New File
                     </button>
@@ -468,8 +608,6 @@ export default function MediaCompressor({ isDarkMode = false }) {
             </div>
           )}
         </div>
-
-
       </div>
       <Footer currentPage={location.pathname} isDarkMode={isDarkMode} />
     </div>

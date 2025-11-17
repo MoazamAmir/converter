@@ -66,19 +66,27 @@ const ImageResizerPro = ({ isDarkMode }) => {
   };
   const handleDrop = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
-    const files = e.dataTransfer.files;
-    if (files?.[0]) handleFileChange(files[0]);
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      handleFileChange(files[0]);
+      // clear dataTransfer to avoid reusing the same file
+      if (e.dataTransfer.items) {
+        e.dataTransfer.items.clear();
+      } else {
+        e.dataTransfer.clearData();
+      }
+    }
   };
  const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setSelectedImage(event.target.result);
-      };
-      reader.readAsDataURL(file);
+      // Use the same handler as drag/drop so behaviour is consistent
+      handleFileChange(file);
     }
+    // reset input so selecting same file again still fires change
+    e.target.value = null;
   };
   const handleWidthChange = (e) => {
     const w = e.target.value === '' ? 0 : Number(e.target.value);
@@ -146,6 +154,7 @@ const ImageResizerPro = ({ isDarkMode }) => {
                 <div className={`${bgCard} rounded-2xl p-8 sm:p-12 text-center`}>
                   <div
                     onClick={() => fileInputRef.current.click()}
+                    onDragEnter={handleDragOver}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
