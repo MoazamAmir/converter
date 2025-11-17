@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Image, Video, Download, X, Loader2 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import Footer from '../components/Footer';
+
+
 export default function MediaCompressor({ isDarkMode = false }) {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -105,17 +107,14 @@ export default function MediaCompressor({ isDarkMode = false }) {
         img.onload = () => {
           const canvas = document.createElement('canvas');
           
-          // Detect original format
           const isPNG = file.type === 'image/png';
           const isJPEG = file.type === 'image/jpeg' || file.type === 'image/jpg';
           const isWEBP = file.type === 'image/webp';
           
           const ctx = canvas.getContext('2d', { alpha: isPNG });
 
-          // Keep original dimensions for better quality
           let { width, height } = img;
           
-          // Only resize if image is extremely large (over 4K)
           const maxDimension = 3840;
           if (width > maxDimension || height > maxDimension) {
             const scale = Math.min(maxDimension / width, maxDimension / height);
@@ -134,14 +133,11 @@ export default function MediaCompressor({ isDarkMode = false }) {
             ctx.fillRect(0, 0, width, height);
           }
 
-          // Enable high-quality image smoothing
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
 
-          // Draw image
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Maintain original format
           let outputMimeType = file.type;
           if (isPNG) {
             outputMimeType = 'image/png';
@@ -150,25 +146,20 @@ export default function MediaCompressor({ isDarkMode = false }) {
           } else if (isWEBP) {
             outputMimeType = 'image/webp';
           } else {
-            // Default to JPEG for unknown formats
             outputMimeType = 'image/jpeg';
           }
 
-          // For PNG: Use aggressive compression strategies
            if (isPNG) {
-            // Try multiple compression attempts with different strategies
             const attemptPNGCompression = async () => {
               let pngWidth = width;
               let pngHeight = height;
               
-              // PNG ke liye scale factors try karo
               const scalingAttempts = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3];
               
               for (let scale of scalingAttempts) {
                 pngWidth = Math.round(width * scale);
                 pngHeight = Math.round(height * scale);
                 
-                // Create new canvas with scaled dimensions
                 const pngCanvas = document.createElement('canvas');
                 pngCanvas.width = pngWidth;
                 pngCanvas.height = pngHeight;
@@ -179,12 +170,10 @@ export default function MediaCompressor({ isDarkMode = false }) {
                 pngCtx.imageSmoothingQuality = 'high';
                 pngCtx.drawImage(img, 0, 0, pngWidth, pngHeight);
                 
-                // Convert to blob
                 const blob = await new Promise(resolve => {
                   pngCanvas.toBlob(resolve, 'image/png');
                 });
                 
-                // Agar compressed size original se chhoti ho gai to use karo
                 if (blob && blob.size < originalSize) {
                   setCompressedSize(blob.size);
                   setCompressedBlob(blob);
@@ -195,7 +184,6 @@ export default function MediaCompressor({ isDarkMode = false }) {
                 }
               }
               
-              // Agar koi bhi scaling se compress nahi hua to original file use karo
               setCompressedSize(originalSize);
               setCompressedBlob(file);
               setCompressedUrl(URL.createObjectURL(file));
@@ -205,7 +193,6 @@ export default function MediaCompressor({ isDarkMode = false }) {
             
             attemptPNGCompression();
           } else {
-            // For JPEG/WebP: Use standard compression
             let outputQuality = Math.max(0.7, quality / 100);
             
             const tryCompress = (currentQuality) => {
@@ -220,13 +207,11 @@ export default function MediaCompressor({ isDarkMode = false }) {
                     return;
                   }
 
-                  // If compressed size is larger, try with lower quality
                   if (blob.size >= originalSize && currentQuality > 0.3) {
                     tryCompress(currentQuality - 0.1);
                     return;
                   }
 
-                  // Check if compression was successful
                   if (blob.size >= originalSize) {
                     setCompressedSize(originalSize);
                     setCompressedBlob(file);

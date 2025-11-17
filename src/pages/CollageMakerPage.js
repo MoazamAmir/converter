@@ -1,5 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Download, Trash2, Layers, ImagePlus, Palette, Sliders, RotateCw, Upload, Image as ImageIcon } from 'lucide-react'; // Added Upload, ImageIcon
+import { useLocation } from 'react-router-dom';
+import Footer from '../components/Footer';
+
 
 const CollageApp = ({ isDarkMode = false }) => {
   const initialLayout = { name: '2×2', cols: 2, rows: 2, type: 'grid' };
@@ -17,6 +20,10 @@ const CollageApp = ({ isDarkMode = false }) => {
   const [isDraggingOverLibrary, setIsDraggingOverLibrary] = useState(false);
   const fileInputRef = useRef(null);
   const colorPickerRef = useRef(null);
+  const location = useLocation();
+  const adBg = isDarkMode ? 'bg-blue-900/20 border-blue-800' : 'bg-blue-100 border-blue-200';
+  const adText = isDarkMode ? 'text-blue-300' : 'text-blue-800';
+  const adSubText = isDarkMode ? 'text-blue-400' : 'text-blue-600';
 
   // Theme classes
   const bgPrimary = isDarkMode ? 'bg-gradient-to-br from-gray-900 via-slate-800 to-gray-900' : 'bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50';
@@ -131,7 +138,6 @@ const CollageApp = ({ isDarkMode = false }) => {
     '#8B5CF6', '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16'
   ];
 
-  // ✅ Updated handleFileUpload to only add to library or assign to slot
   const handleFileUpload = (e, addToSlot = false, files = null) => {
     const uploadedFiles = files ? Array.from(files) : Array.from(e.target.files);
     if (uploadedFiles.length === 0) return;
@@ -147,7 +153,6 @@ const CollageApp = ({ isDarkMode = false }) => {
 
         setImages(prev => [...prev, newImage]);
 
-        // Assign to slot only if explicitly requested AND it's the first file uploaded
         if (addToSlot && pendingSlotIndex !== null && index === 0) {
           setCollageImages(prev => {
             const updated = [...prev];
@@ -160,7 +165,6 @@ const CollageApp = ({ isDarkMode = false }) => {
       reader.readAsDataURL(file);
     });
 
-    // Reset input for file selection
     if (e && e.target) {
       e.target.value = '';
     }
@@ -225,7 +229,6 @@ const CollageApp = ({ isDarkMode = false }) => {
 
     const files = e.dataTransfer.files;
     if (files && files.length > 0) {
-      // New images dropped directly onto a slot - assign the first file
       setPendingSlotIndex(dropIndex);
       handleFileUpload(null, true, files);
       return;
@@ -237,12 +240,10 @@ const CollageApp = ({ isDarkMode = false }) => {
     setCollageImages(prev => {
       const updated = [...prev];
       if (fromIndex !== null && fromIndex !== undefined) {
-        // Moving image from one slot to another
         const temp = updated[dropIndex];
         updated[dropIndex] = updated[fromIndex];
         updated[fromIndex] = temp;
       } else {
-        // Dropping image from library to slot
         updated[dropIndex] = image;
       }
       return updated;
@@ -257,13 +258,11 @@ const CollageApp = ({ isDarkMode = false }) => {
     setIsDraggingOverLibrary(true);
   };
 
-  // ✅ Drag Leave for Library Dropzone
   const handleLibraryDragLeave = (e) => {
     e.stopPropagation();
     setIsDraggingOverLibrary(false);
   };
 
-  // ✅ Drop for Library Dropzone (adds to library only)
   const handleLibraryDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -275,9 +274,6 @@ const CollageApp = ({ isDarkMode = false }) => {
     }
   };
 
-  // 🌟 IMAGE LIBRARY DRAG & DROP FUNCTIONS END 🌟
-
-  // ✅ Updated to explicitly request slot assignment
   const handleSlotClick = (index) => {
     if (!collageImages[index]) {
       setPendingSlotIndex(index);
@@ -304,7 +300,6 @@ const CollageApp = ({ isDarkMode = false }) => {
     const availableWidth = width - (2 * padding);
     const availableHeight = height - (2 * padding);
 
-    // Pre-load all images using createImageBitmap
     const imageBitmaps = await Promise.all(
       collageImages.map(async (imgData) => {
         if (!imgData) return null;
@@ -320,7 +315,6 @@ const CollageApp = ({ isDarkMode = false }) => {
       })
     );
 
-    // Draw images to canvas
     imageBitmaps.forEach((imgBitmap, index) => {
       if (!imgBitmap) return;
 
@@ -492,127 +486,136 @@ const CollageApp = ({ isDarkMode = false }) => {
 
 
   return (
-    <div className={`min-h-screen ${bgPrimary} p-4 sm:p-6 transition-colors duration-300`}>
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={(e) => handleFileUpload(e, true)} // Only when user explicitly selects via slot click
-        accept="image/*"
-        multiple // Allow multiple file selection
-        className="hidden"
-      />
+    <div className={`min-h-screen overflow-x-hidden ${bgPrimary} transition-colors duration-300`}>
+      <div className="h-16 w-full">
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={(e) => handleFileUpload(e, true)} // Only when user explicitly selects via slot click
+          accept="image/*"
+          multiple // Allow multiple file selection
+          className="hidden"
+        />
 
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar / Tools */}
-          <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-4 h-full">
-            {sidebarSections.map((section, i) => (
-              <div
-                key={i}
-                className={`${bgCard} backdrop-blur-sm rounded-xl shadow-lg border ${borderColor} p-5`}
-              >
-                <h3 className={`font-semibold mb-3 flex items-center gap-2 ${textPrimary}`}>
-                  <section.icon className="w-5 h-5 text-purple-500" />
-                  {section.title}
-                </h3>
-                {section.content}
-              </div>
-            ))}
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mt-5 mb-10">
+            <div className={`rounded-lg p-4 sm:p-6 flex flex-col items-center justify-center min-h-[90px] mx-auto w-full max-w-[728px] shadow-md border ${adBg}`}>
+              <p className={`text-sm sm:text-base font-semibold ${adText}`}>Advertisement Space 728x90</p>
+              <p className={`text-xs sm:text-sm mt-1 ${adSubText}`}>Your Banner Ad Here</p>
+            </div>
           </div>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Sidebar / Tools */}
+            <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-4 h-full">
+              {sidebarSections.map((section, i) => (
+                <div
+                  key={i}
+                  className={`${bgCard} backdrop-blur-sm rounded-xl shadow-lg border ${borderColor} p-5`}
+                >
+                  <h3 className={`font-semibold mb-3 flex items-center gap-2 ${textPrimary}`}>
+                    <section.icon className="w-5 h-5 text-purple-500" />
+                    {section.title}
+                  </h3>
+                  {section.content}
+                </div>
+              ))}
+            </div>
 
-          {/* Canvas / Collage Area */}
-          <div className="lg:col-span-3">
-            <div
-              style={{ backgroundColor: backgroundColor }}
-              className={`relative w-full aspect-video p-10 rounded-xl shadow-2xl transition-all duration-500`}
-            >
-              {/* Collage Grid/Freeform */}
+            {/* Canvas / Collage Area */}
+            <div className="lg:col-span-3">
+
+
               <div
-                className="absolute inset-10"
-                style={{
-                  display: layout.type === 'grid' ? 'grid' : 'block',
-                  gridTemplateColumns: layout.type === 'grid' ? `repeat(${layout.cols}, 1fr)` : 'none',
-                  gridTemplateRows: layout.type === 'grid' ? `repeat(${layout.rows}, 1fr)` : 'none',
-                  gap: layout.type === 'grid' ? `${spacing}px` : '0px',
-                }}
+                style={{ backgroundColor: backgroundColor }}
+                className={`relative w-full aspect-video p-10 rounded-xl shadow-2xl transition-all duration-500`}
               >
-                {Array.from({ length: totalSlots }).map((_, index) => {
-                  const imgData = collageImages[index];
-                  const isFreeform = layout.type === 'freeform';
-                  const pos = isFreeform ? layout.positions?.[index] : null;
+                {/* Collage Grid/Freeform */}
+                <div
+                  className="absolute inset-10"
+                  style={{
+                    display: layout.type === 'grid' ? 'grid' : 'block',
+                    gridTemplateColumns: layout.type === 'grid' ? `repeat(${layout.cols}, 1fr)` : 'none',
+                    gridTemplateRows: layout.type === 'grid' ? `repeat(${layout.rows}, 1fr)` : 'none',
+                    gap: layout.type === 'grid' ? `${spacing}px` : '0px',
+                  }}
+                >
+                  {Array.from({ length: totalSlots }).map((_, index) => {
+                    const imgData = collageImages[index];
+                    const isFreeform = layout.type === 'freeform';
+                    const pos = isFreeform ? layout.positions?.[index] : null;
 
-                  // Base styles for the slot
-                  let slotStyle = {
-                    borderRadius: `${roundness}px`,
-                    overflow: 'hidden',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    border: dragOverIndex === index ? '4px dashed #3B82F6' : 'none',
-                  };
-
-                  // Freeform positioning
-                  if (isFreeform && pos) {
-                    slotStyle = {
-                      ...slotStyle,
-                      position: 'absolute',
-                      left: `${pos.x * 100}%`,
-                      top: `${pos.y * 100}%`,
-                      width: `${pos.width * 100}%`,
-                      height: `${pos.height * 100}%`,
-                      transform: `rotate(${pos.rotation || 0}deg)`,
-                      zIndex: index + 1, // Stacking order
+                    // Base styles for the slot
+                    let slotStyle = {
+                      borderRadius: `${roundness}px`,
+                      overflow: 'hidden',
+                      transition: 'transform 0.2s, box-shadow 0.2s',
+                      border: dragOverIndex === index ? '4px dashed #3B82F6' : 'none',
                     };
-                  }
 
-                  return (
-                    <div
-                      key={index}
-                      style={slotStyle}
-                      onClick={() => handleSlotClick(index)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, index)}
-                      className={`relative cursor-pointer transition ${!imgData && `${emptySlotBg} ${emptySlotHover}`
-                        }`}
-                    >
-                      {imgData ? (
-                        <>
-                          <img
-                            src={imgData.src}
-                            alt={`Collage image ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            onClick={(e) => removeFromCollage(index, e)}
-                            className="absolute top-2 right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full z-10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                        // njhghfbg
-                      ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
-                          <ImagePlus className={`w-8 h-8 ${textSecondary}`} />
-                          <p className={`text-xs mt-1 ${textSecondary}`}>
-                            {dragOverIndex === index ? 'Drop Here' : 'Click or Drag Image'}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                    // Freeform positioning
+                    if (isFreeform && pos) {
+                      slotStyle = {
+                        ...slotStyle,
+                        position: 'absolute',
+                        left: `${pos.x * 100}%`,
+                        top: `${pos.y * 100}%`,
+                        width: `${pos.width * 100}%`,
+                        height: `${pos.height * 100}%`,
+                        transform: `rotate(${pos.rotation || 0}deg)`,
+                        zIndex: index + 1, // Stacking order
+                      };
+                    }
 
-              {/* Info & Footer */}
-              <div className={`absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs ${textSecondary} opacity-70`}>
-                Layout: {layout.name} | Slots: {totalSlots} | Roundness: {roundness}%
+                    return (
+                      <div
+                        key={index}
+                        style={slotStyle}
+                        onClick={() => handleSlotClick(index)}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, index)}
+                        className={`relative cursor-pointer transition ${!imgData && `${emptySlotBg} ${emptySlotHover}`
+                          }`}
+                      >
+                        {imgData ? (
+                          <>
+                            <img
+                              src={imgData.src}
+                              alt={`Collage image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              onClick={(e) => removeFromCollage(index, e)}
+                              className="absolute top-2 right-2 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full z-10"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-2">
+                            <ImagePlus className={`w-8 h-8 ${textSecondary}`} />
+                            <p className={`text-xs mt-1 ${textSecondary}`}>
+                              {dragOverIndex === index ? 'Drop Here' : 'Click or Drag Image'}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Info & Footer */}
+                <div className={`absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs ${textSecondary} opacity-70`}>
+                  Layout: {layout.name} | Slots: {totalSlots} | Roundness: {roundness}%
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer component (assuming it's available) */}
-      {/* <Footer currentPage={location.pathname} isDarkMode={isDarkMode} /> */}
+        {/* Footer component (assuming it's available) */}
+        <Footer currentPage={location.pathname} isDarkMode={isDarkMode} />
+      </div>
     </div>
   );
 };
